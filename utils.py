@@ -8,4 +8,6 @@ class States(Helper):
     PARENT_STATE = ListItem()
     TEACHER_STATE = ListItem()
     TUTOR_STATE = ListItem()
+    STUDENT_KEY_STATE = ListItem()
+    STUDENT_QUESTION_STATE = ListItem()
 
