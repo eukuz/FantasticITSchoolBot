@@ -2,7 +2,7 @@ from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 from .unauthorized import dp
-from .buttons import get_student_schedule
+from .student_buttons import get_student_schedule
 from aiogram.utils.markdown import text, bold, italic, code
 from aiogram.types import ParseMode
 from aiogram import Bot, Dispatcher, executor, types

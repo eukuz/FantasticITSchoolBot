@@ -8,8 +8,8 @@ from aiogram.types import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
 from utils import States
 from loader import dp, bot
-from .buttons import parent_in_system_kb
-from .buttons import student_main_kb
+from .student_buttons import parent_in_system_kb
+from .student_buttons import student_main_kb
 from .parent import parent_main_kb
 
 

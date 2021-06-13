@@ -10,4 +10,7 @@ class States(Helper):
     TUTOR_STATE = ListItem()
     STUDENT_KEY_STATE = ListItem()
     STUDENT_QUESTION_STATE = ListItem()
+    PARENT_QUESTION_STATE = ListItem()
+    STUDENT_SICK_STATE = ListItem()
+    PARENT_SICK_STATE = ListItem()
 

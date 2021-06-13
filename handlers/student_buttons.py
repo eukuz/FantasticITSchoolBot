@@ -22,6 +22,8 @@ student_main_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(student_schedule
                                                                 student_add_course_btn,
                                                                 student_query_btn,
                                                                 student_exit_btn)
+
+
 async def get_student_schedule(sql_student_id=0):
     # TODO: generate schedule message
     if sql_student_id == 0:
@@ -116,33 +118,100 @@ async def process_student_key(msg: types.Message):
 
 
 # Query button
-@dp.message_handler(state=States.STUDENT_STATE, text='Запрос')
+def create_query_kb(main):
+    ask_question_btn = InlineKeyboardButton('Задать вопрос', callback_data='question')
+    illness_btn = InlineKeyboardButton('Сообщить о болезни', callback_data='sick')
+    feedback_btn = InlineKeyboardButton('Получить фидбек', callback_data='feedback')
+    query_kb = InlineKeyboardMarkup().add(ask_question_btn).add(illness_btn).add(feedback_btn)
+    if not main:
+        back_btn = InlineKeyboardButton('Назад', callback_data='back to main')
+        query_kb.add(back_btn)
+    return query_kb
+
+
+@dp.message_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='Запрос')
 async def process_query_btn(msg: types.Message):
-    ask_question_btn = InlineKeyboardButton('Задать вопрос', callback_data='student question')
-    illness_btn = InlineKeyboardButton('Я заболел', callback_data='student sick')
-    feedback_btn = InlineKeyboardButton('Получить фидбек', callback_data='student feedback')
-    query_kb = InlineKeyboardMarkup().add(ask_question_btn)
-    query_kb.add(illness_btn).add(feedback_btn)
+    query_kb = create_query_kb(True)
     await msg.answer('Выберите действие: ', reply_markup=query_kb)
 
 
 # Ask question button
-@dp.callback_query_handler(state=States.STUDENT_STATE, text='student question')
-async def process_question_btn(msg: types.Message):
-    state = dp.current_state(user=msg.from_user.id)  # take current state of user
-    await state.set_state(States.STUDENT_QUESTION_STATE[0])  # change user's state
-    await msg.answer('Задайте вопрос')
-    # TODO скрыть главное меню и сделать кнопку отмены задавания вопроса
+@dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='question')
+async def process_question_btn(callback_query: types.CallbackQuery):
+    # await bot.answer_callback_query(callback_query.id)
+    state = dp.current_state(user=callback_query.from_user.id)  # take current state of user
+    if state == States.STUDENT_STATE:
+        await state.set_state(States.STUDENT_QUESTION_STATE[0])  # change user's state
+    else:
+        await state.set_state(States.PARENT_QUESTION_STATE[0])
+
+    await callback_query.answer('Задайте вопрос')
+    query_kb = create_query_kb(False)
+    await bot.edit_message_reply_markup(callback_query.from_user.id, callback_query.message.message_id, reply_markup=query_kb)
 
 
 # Forward message to the admin chat
-@dp.message_handler(state=States.STUDENT_QUESTION_STATE)
+@dp.message_handler(state=States.STUDENT_QUESTION_STATE | States.PARENT_QUESTION_STATE)
 async def process_student_question(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)  # take current state of user
-    await state.set_state(States.STUDENT_STATE[0])   # change user's state
+    if state == States.STUDENT_QUESTION_STATE:
+        await state.set_state(States.STUDENT_STATE[0])   # change user's state
+    else:
+        await state.set_state(States.PARENT_STATE[0])
     # TODO: forward message to the admins' chat
     text_ = msg.text
-    await msg.answer('Ваше сообщение зарегестрировано под номер 10000. Ожидайте ответа в ближайшее время.')
+    await msg.answer('Ваше сообщение зарегестрировано под номер 10000. Ожидайте ответ в ближайшее время.')
+    # TODO: remove Back button from prev inline message
+
+# Report about sickness
+@dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='sick')
+async def process_sickness_btn(callback_query: types.CallbackQuery):
+    # await bot.answer_callback_query(callback_query.id)
+    state = dp.current_state(user=callback_query.from_user.id)  # take current state of user
+    if state == States.STUDENT_STATE:
+        await state.set_state(States.STUDENT_SICK_STATE[0])  # change user's state
+    else:
+        await state.set_state(States.PARENT_SICK_STATE[0])
+
+    await callback_query.answer('Пожалуйста, предоставьте подтверждающий документ')
+    query_kb = create_query_kb(False)
+    await bot.edit_message_reply_markup(callback_query.from_user.id, callback_query.message.message_id, reply_markup=query_kb)
+
+
+# Forward evidence to the admins' chat
+@dp.message_handler(state=States.STUDENT_SICK_STATE | States.PARENT_SICK_STATE)
+async def process_sick_evidence(msg: types.Message):
+    state = dp.current_state(user=msg.from_user.id)  # take current state of user
+    if state == States.STUDENT_SICK_STATE:
+        await state.set_state(States.STUDENT_STATE[0])   # change user's state
+    else:
+        await state.set_state(States.PARENT_STATE[0])
+    # TODO: forward message to the admins' chat
+    text_ = msg.text
+    await msg.answer('Принято, ожидайте подтверждения.')
+    # TODO: remove Back button from prev inline message
+    # query_kb = create_query_kb(True)
+    # await bot.edit_message_reply_markup()
+
+# Feedback button
+@dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='feedback')
+async def process_feedback_btn(callback_query: types.CallbackQuery):
+    # TODO: ask feedback from admins
+    await callback_query.answer('Запрос отправлен. Ожидайте ответа')
+
+# Back to the main query menu button
+@dp.callback_query_handler(state=States.STUDENT_QUESTION_STATE | States.STUDENT_SICK_STATE |
+                                 States.PARENT_QUESTION_STATE | States.PARENT_SICK_STATE, text='back to main')
+async def process_back_button(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    state = dp.current_state(user=callback_query.from_user.id)  # take current state of user
+    if state == States.STUDENT_QUESTION_STATE or state == States.STUDENT_SICK_STATE:
+        await state.set_state(States.STUDENT_STATE[0])  # change user's state
+    else:
+        await state.set_state(States.PARENT_STATE[0])
+    query_kb = create_query_kb(True)
+    await bot.edit_message_reply_markup(callback_query.from_user.id, callback_query.message.message_id,
+                                        reply_markup=query_kb)
 
 
 # Exit button
