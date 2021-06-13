@@ -22,6 +22,13 @@ student_main_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(student_schedule
                                                                 student_add_course_btn,
                                                                 student_query_btn,
                                                                 student_exit_btn)
+async def get_student_schedule(sql_student_id=0):
+    # TODO: generate schedule message
+    if sql_student_id == 0:
+        return text(bold('Python'), ' 10:00-10:30', sep='')
+    else:
+        return text(bold('Java'), ' 10:00-10:30', sep='')
+
 
 # Parent in system button
 @dp.callback_query_handler(state=States.STUDENT_STATE, text='parent in system')
@@ -34,8 +41,7 @@ async def process_callback_parent_in_system(callback_query: types.CallbackQuery)
 # Schedule button
 @dp.message_handler(state=States.STUDENT_STATE, text='Расписание')
 async def process_schedule_btn(msg: types.Message):
-    # TODO: generate schedule message
-    schedule = text(bold('Python'), ' 10:00-10:30', sep='')
+    schedule = await get_student_schedule(msg.chat.id)    #student_id in sql datebase == telegram user id ?
     await msg.answer(schedule, parse_mode=ParseMode.MARKDOWN)
 
 
@@ -126,6 +132,7 @@ async def process_question_btn(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)  # take current state of user
     await state.set_state(States.STUDENT_QUESTION_STATE[0])  # change user's state
     await msg.answer('Задайте вопрос')
+    # TODO скрыть главное меню и сделать кнопку отмены задавания вопроса
 
 
 # Forward message to the admin chat
@@ -139,8 +146,8 @@ async def process_student_question(msg: types.Message):
 
 
 # Exit button
-@dp.message_handler(state=States.STUDENT_STATE, text='Выйти')
-async def process_schedule_btn(msg: types.Message):
+@dp.message_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='Выйти')
+async def process_exit_btn(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)  # take current state
     await state.set_state(States.UNAUTHORIZED_STATE[0])  # unauthorize user
     await msg.answer('Вы успешно вышли из системы.',
