@@ -1,0 +1,3 @@
+connections = {
+    'SQLite': 'TestKeyStoreDB.db'
+}
