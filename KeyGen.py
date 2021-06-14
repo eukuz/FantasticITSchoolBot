@@ -2,7 +2,7 @@ import string
 import secrets
 import sqlite3
 from strings import connections
-
+from AppDatabase import AppDatabase
 
 class KeyGen:
     @staticmethod
@@ -74,8 +74,7 @@ class KeyGen:
 def main():
 
     print(KeyGen.generateNKeysStudents(3))
-
-
+    AppDatabase.AppDB.__init__()
 
 
 main()
