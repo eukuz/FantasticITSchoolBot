@@ -1,6 +1,7 @@
 from aiogram.utils.helper import Helper, HelperMode, ListItem
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+
 class States(Helper):
     mode = HelperMode.snake_case
     UNAUTHORIZED_STATE = ListItem()
@@ -13,4 +14,5 @@ class States(Helper):
     PARENT_QUESTION_STATE = ListItem()
     STUDENT_SICK_STATE = ListItem()
     PARENT_SICK_STATE = ListItem()
+    PARENT_REGISTRATION_STATE = ListItem()
 

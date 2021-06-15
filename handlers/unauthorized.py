@@ -33,10 +33,7 @@ async def authorization(msg: types.Message):
         await msg.answer('Вы успешно авторизовались как ученик.',
                          reply_markup=student_main_kb)
 
-        # TODO: generate normal parent code
-        parentCode = 'parentCode'
-        await msg.answer(text('Код для авторизации родителя: ',
-                              code(parentCode), '.', sep=''),
+        await msg.answer(text('Пожалуйста, зарегестрируйте родителя.'),
                          parse_mode=ParseMode.MARKDOWN,
                          reply_markup=parent_in_system_kb)
     elif text_ == 'parentCode':
@@ -44,11 +41,16 @@ async def authorization(msg: types.Message):
         # TODO: find children of the parent
         await msg.answer('Вы успешно авторизовались как родитель. Вас добавили дети: ',
                          reply_markup=parent_main_kb)
+    elif text_ == 'tutorCode':
+        await state.set_state(States.TUTOR_STATE[0])  # change user's state to TUTOR
+        await msg.answer('Вы успешно авторизовались как куратор.')
+    elif text_ == 'teacherCode':
+        await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
+        await msg.answer('Вы успешно авторизовались как учитель.')
     else:
         await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
 
 
-# @dp.message_handler(state='*')
-# async def echo_message(msg: types.Message):
-#     state = dp.current_state(user=msg.from_user.id)
-#     print(await state.get_state())
+@dp.message_handler(state='*')
+async def echo_message(msg: types.Message):
+    await msg.answer('Я вас не понял. Попробуйте другую команду.')
