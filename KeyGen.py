@@ -6,76 +6,63 @@ from strings import connections
 
 class KeyGen:
     @staticmethod
-    def __generateNKeys(n,control):
+    def __generateNKeys(n, tableName):
         symbols = string.digits + string.ascii_letters
         keys = set()
         conn = sqlite3.connect(connections["SQLite"])
         cursor = conn.cursor()
-        fullTableName = KeyGen.__decodeControl(control)
         while len(keys) != n:
             key = "".join(secrets.choice(symbols) for i in range(13))
-            cursor.execute("SELECT Key FROM "+fullTableName+" where Key = '"+key+"'")
+            cursor.execute("SELECT Key FROM " + tableName + " where Key = '" + key + "'")
             if not cursor.fetchone():
                 keys.add(key)
         conn.close()
         return keys
-    def __decodeControl(control):
-        if control == "STD":
-            fullTableName = "Students"
-        elif control == "TEA":
-            fullTableName = "Teachers"
-        elif control == "CUR":
-            fullTableName = "Curators"
-        elif control == "PAR":
-            fullTableName = "Parents"
-        elif control == "COU":
-            fullTableName = "Courses"
-        elif control == "GRO":
-            fullTableName = "Groups"
-        return fullTableName
 
-    def __writeKeysToDB(keys,control):
-
+    def __writeKeysToDB(keys, tableName):
         conn = sqlite3.connect(connections["SQLite"])
         cursor = conn.cursor()
-        values =""
+        values = ""
         for key in keys:
-            values += "('"+key+"'),"
-        cursor.execute("INSERT INTO "+KeyGen.__decodeControl(control)+" (Key) VALUES "+ values[:-1])
+            values += "('" + key + "'),"
+        cursor.execute("INSERT INTO " + tableName + " (Key) VALUES " + values[:-1])
         conn.commit()
         conn.close()
 
-    def __getKeys(n, control):
-        keys = KeyGen.__generateNKeys(n,control)
-        KeyGen.__writeKeysToDB(keys,control)
+    def __getKeys(n, tableName):
+        keys = KeyGen.__generateNKeys(n, tableName)
+        KeyGen.__writeKeysToDB(keys, tableName)
+        control = tableName[0:3].upper()
+        controlsKeys = set()
         for key in keys:
-            key = control + key
-        return keys
+            controlsKeys.add(control + key)
+        return controlsKeys
 
     def generateNKeysStudents(n):
-        return KeyGen.__getKeys(n,"STD")
+        return KeyGen.__getKeys(n, "Students")
 
     def generateNKeysTeachers(n):
-        return KeyGen.__getKeys(n,"TEA")
+        return KeyGen.__getKeys(n, "Teachers")
 
     def generateNKeysCurators(n):
-        return KeyGen.__getKeys(n, "CUR")
+        return KeyGen.__getKeys(n, "Curators")
 
     def generateNKeysParents(n):
-        return KeyGen.__getKeys(n, "PAR")
+        return KeyGen.__getKeys(n, "Parents")
 
     def generateNKeysCourses(n):
-        return KeyGen.__getKeys(n, "COU")
+        return KeyGen.__getKeys(n, "Courses")
 
     def generateNKeysGroups(n):
-        return KeyGen.__getKeys(n, "GRO")
+        return KeyGen.__getKeys(n, "Groups")
+
+    def generateNKeys(n, tableName):
+        return KeyGen.__getKeys(n, tableName)
 
 
 def main():
-
     print(KeyGen.generateNKeysStudents(3))
-
-
+    print(KeyGen.generateNKeys(3, 'Teachers'))
 
 
 main()
