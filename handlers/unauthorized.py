@@ -8,9 +8,12 @@ from aiogram.types import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
 from utils import States
 from loader import dp, bot
+
+# TODO create single file with all keyboards, buttons and text
 from .student_buttons import parent_in_system_kb
 from .student_buttons import student_main_kb
 from .parent import parent_main_kb
+from .teacher import teacher_main_kb
 
 
 @dp.message_handler(state='*', commands=['start'])
@@ -46,7 +49,8 @@ async def authorization(msg: types.Message):
         await msg.answer('Вы успешно авторизовались как куратор.')
     elif text_ == 'teacherCode':
         await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
-        await msg.answer('Вы успешно авторизовались как учитель.')
+        await msg.answer('Вы успешно авторизовались как учитель.',
+                         reply_markup=teacher_main_kb)
     else:
         await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
 
