@@ -11,6 +11,9 @@ from loader import dp, bot
 from .student_buttons import parent_in_system_kb
 from .student_buttons import student_main_kb
 from .parent import parent_main_kb
+from .tutor_main import tutor_main_kb
+from .tutor_gen_keys import *
+from .tutors_create import *
 
 
 @dp.message_handler(state='*', commands=['start'])
@@ -43,7 +46,8 @@ async def authorization(msg: types.Message):
                          reply_markup=parent_main_kb)
     elif text_ == 'tutorCode':
         await state.set_state(States.TUTOR_STATE[0])  # change user's state to TUTOR
-        await msg.answer('Вы успешно авторизовались как куратор.')
+        await msg.answer('Вы успешно авторизовались как куратор.',
+                         reply_markup=tutor_main_kb)
     elif text_ == 'teacherCode':
         await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
         await msg.answer('Вы успешно авторизовались как учитель.')
