@@ -40,10 +40,6 @@ async def process_callback_parent_in_system(callback_query: types.CallbackQuery)
     state = dp.current_state(user=callback_query.from_user.id)
     await state.set_state(States.PARENT_REGISTRATION_STATE[0])
     await bot.send_message(callback_query.from_user.id, 'Пожалуйста введите ключ вашего родителя.')
-    await bot.edit_message_reply_markup(callback_query.from_user.id,
-                                        callback_query.message.message_id,
-                                        reply_markup=None)
-    await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
 
 
 # Catch parent's key
@@ -175,7 +171,8 @@ async def process_query_btn(msg: types.Message):
 async def process_question_btn(callback_query: types.CallbackQuery):
     # await bot.answer_callback_query(callback_query.id)
     state = dp.current_state(user=callback_query.from_user.id)  # take current state of user
-    if state == States.STUDENT_STATE:
+    s = await state.get_state()
+    if s == States.STUDENT_STATE[0]:
         await state.set_state(States.STUDENT_QUESTION_STATE[0])  # change user's state
     else:
         await state.set_state(States.PARENT_QUESTION_STATE[0])
@@ -189,7 +186,8 @@ async def process_question_btn(callback_query: types.CallbackQuery):
 @dp.message_handler(state=States.STUDENT_QUESTION_STATE | States.PARENT_QUESTION_STATE)
 async def process_student_question(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)  # take current state of user
-    if state == States.STUDENT_QUESTION_STATE:
+    s = await state.get_state()
+    if s == States.STUDENT_QUESTION_STATE[0]:
         await state.set_state(States.STUDENT_STATE[0])   # change user's state
     else:
         await state.set_state(States.PARENT_STATE[0])
@@ -198,12 +196,14 @@ async def process_student_question(msg: types.Message):
     await msg.answer('Ваше сообщение зарегестрировано под номер 10000. Ожидайте ответ в ближайшее время.')
     # TODO: remove Back button from prev inline message
 
+
 # Report about sickness
 @dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='sick')
 async def process_sickness_btn(callback_query: types.CallbackQuery):
     # await bot.answer_callback_query(callback_query.id)
     state = dp.current_state(user=callback_query.from_user.id)  # take current state of user
-    if state == States.STUDENT_STATE:
+    s = await state.get_state()
+    if s == States.STUDENT_STATE[0]:
         await state.set_state(States.STUDENT_SICK_STATE[0])  # change user's state
     else:
         await state.set_state(States.PARENT_SICK_STATE[0])
@@ -217,7 +217,8 @@ async def process_sickness_btn(callback_query: types.CallbackQuery):
 @dp.message_handler(state=States.STUDENT_SICK_STATE | States.PARENT_SICK_STATE)
 async def process_sick_evidence(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)  # take current state of user
-    if state == States.STUDENT_SICK_STATE:
+    s = await state.get_state()
+    if s == States.STUDENT_SICK_STATE[0]:
         await state.set_state(States.STUDENT_STATE[0])   # change user's state
     else:
         await state.set_state(States.PARENT_STATE[0])
@@ -228,19 +229,23 @@ async def process_sick_evidence(msg: types.Message):
     # query_kb = create_query_kb(True)
     # await bot.edit_message_reply_markup()
 
+
 # Feedback button
 @dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='feedback')
 async def process_feedback_btn(callback_query: types.CallbackQuery):
     # TODO: ask feedback from admins
     await callback_query.answer('Запрос отправлен. Ожидайте ответа')
 
+
 # Back to the main query menu button
 @dp.callback_query_handler(state=States.STUDENT_QUESTION_STATE | States.STUDENT_SICK_STATE |
-                                 States.PARENT_QUESTION_STATE | States.PARENT_SICK_STATE, text='back to main')
+                                 States.PARENT_QUESTION_STATE | States.PARENT_SICK_STATE |
+                                 States.STUDENT_STATE | States.PARENT_STATE, text='back to main')
 async def process_back_button(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     state = dp.current_state(user=callback_query.from_user.id)  # take current state of user
-    if state == States.STUDENT_QUESTION_STATE or state == States.STUDENT_SICK_STATE:
+    s = await state.get_state()
+    if s == States.STUDENT_QUESTION_STATE[0] or s == States.STUDENT_SICK_STATE[0] or s == States.STUDENT_STATE[0]:
         await state.set_state(States.STUDENT_STATE[0])  # change user's state
     else:
         await state.set_state(States.PARENT_STATE[0])
@@ -250,7 +255,7 @@ async def process_back_button(callback_query: types.CallbackQuery):
 
 
 # Exit button
-@dp.message_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='Выйти')
+@dp.message_handler(state=States.STUDENT_STATE | States.PARENT_STATE | States.TUTOR_STATE, text='Выйти')
 async def process_exit_btn(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)  # take current state
     await state.set_state(States.UNAUTHORIZED_STATE[0])  # unauthorize user

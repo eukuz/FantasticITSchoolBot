@@ -15,6 +15,11 @@ class States(Helper):
     PARENT_QUESTION_STATE = ListItem()
     PARENT_SICK_STATE = ListItem()
     PARENT_REGISTRATION_STATE = ListItem()
+    GENKEYS_STUDENT_STATE = ListItem()
+    GENKEYS_TUTOR_STATE = ListItem()
+    GENKEYS_TEACHER_STATE = ListItem()
+    CREATE_COURSE_STATE = ListItem()
+    CREATE_GROUP_STATE = ListItem()
 
     TEACHER_STATE = ListItem()
     TEACHER_ADD_COURSE_STATE = ListItem()
