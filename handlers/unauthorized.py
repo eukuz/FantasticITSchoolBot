@@ -16,6 +16,7 @@ from .parent import parent_main_kb
 from .tutor_main import tutor_main_kb
 from .tutor_gen_keys import *
 from .tutors_create import *
+from .teacher import teacher_main_kb
 
 
 @dp.message_handler(state='*', commands=['start'])
