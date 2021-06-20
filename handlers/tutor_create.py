@@ -65,6 +65,7 @@ async def process_yes_btn(callback_query: types.CallbackQuery):
                                     reply_markup=courses_kb)
     await state.set_state(States.TUTOR_STATE[0])
 
+
 @dp.callback_query_handler(Text(startswith='courses'), state=States.TUTOR_STATE)
 async def process_course_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)

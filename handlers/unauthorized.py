@@ -15,7 +15,8 @@ from .student_buttons import student_main_kb
 from .parent import parent_main_kb
 from .tutor_main import tutor_main_kb
 from .tutor_gen_keys import *
-from .tutors_create import *
+from .tutor_create import *
+from .tutor_publish import *
 from .teacher import teacher_main_kb
 
 
