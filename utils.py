@@ -23,7 +23,5 @@ class States(Helper):
     TUTOR_STATE = ListItem()
     CREATE_COURSE_STATE = ListItem()
     CREATE_GROUP_STATE = ListItem()
-    GENKEYS_STUDENT_STATE = ListItem()
-    GENKEYS_TUTOR_STATE = ListItem()
-    GENKEYS_TEACHER_STATE = ListItem()
+    GENKEYS_STATE = ListItem()
     PUBLISH_POST_STATE = ListItem()
