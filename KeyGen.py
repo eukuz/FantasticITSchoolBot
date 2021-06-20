@@ -2,11 +2,11 @@ import string
 import secrets
 import sqlite3
 from strings import connections
-from AppDatabase import AppDatabase
 
 class KeyGen:
+
     @staticmethod
-    def __generateNKeys(n,control):
+    def __generateNKeys(n, control):
         symbols = string.digits + string.ascii_letters
         keys = set()
         conn = sqlite3.connect(connections["SQLite"])
@@ -19,6 +19,7 @@ class KeyGen:
                 keys.add(key)
         conn.close()
         return keys
+
     def __decodeControl(control):
         if control == "STD":
             fullTableName = "Students"
@@ -56,7 +57,7 @@ class KeyGen:
         return KeyGen.__getKeys(n,"STD")
 
     def generateNKeysTeachers(n):
-        return KeyGen.__getKeys(n,"TEA")
+        return KeyGen.__getKeys(n, "TEA")
 
     def generateNKeysCurators(n):
         return KeyGen.__getKeys(n, "CUR")
@@ -72,9 +73,7 @@ class KeyGen:
 
 
 def main():
-
     print(KeyGen.generateNKeysStudents(3))
-    AppDatabase.AppDB.__init__()
 
 
 main()
