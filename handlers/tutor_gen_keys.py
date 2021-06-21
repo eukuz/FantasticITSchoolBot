@@ -10,6 +10,7 @@ from utils import States
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 
+
 @dp.message_handler(state=States.TUTOR_STATE, text='Сгенерировать ключи')
 async def process_generate_keys_btn(msg: types.Message):
     students_btn = InlineKeyboardButton('Студентам', callback_data='gen student')

@@ -26,7 +26,10 @@ async def process_publish_btn(msg: types.Message):
 @dp.callback_query_handler(Text(startswith='groups'), state=States.TUTOR_STATE)
 async def process_group_btn(callback_query: types.CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
-    group = callback_query.data.split()[1]
+    group = ''
+    name = callback_query.data.split()
+    for i in range(1, len(name)):
+        group = group + ' ' + name[i]
     await state.update_data(group=group)
     await state.set_state(States.PUBLISH_POST_STATE[0])
     await bot.send_message(callback_query.from_user.id, 'Введите сообщение для ' + group)
