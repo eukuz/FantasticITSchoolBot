@@ -18,7 +18,9 @@ class States(Helper):
 
     TEACHER_STATE = ListItem()
     TEACHER_ADD_COURSE_STATE = ListItem()
-    TEACHER_MY_COURSES_STATE = ListItem()
+    TEACHER_CREATE_MASS_MESSAGE_STATE = ListItem()
+    TEACHER_CREATE_HW_1_STATE = ListItem()  # Для ввода заголовка для ДЗ
+    TEACHER_CREATE_HW_2_STATE = ListItem()  # Для ввода ДЗ
 
     TUTOR_STATE = ListItem()
     CREATE_COURSE_STATE = ListItem()
