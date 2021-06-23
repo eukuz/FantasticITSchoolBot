@@ -23,10 +23,6 @@ cancel_btn = InlineKeyboardButton('Отмена', callback_data='cancel')
 sure_kb = InlineKeyboardMarkup().add(yes_btn, edit_btn, cancel_btn)
 
 
-async def check_course_exists(course_key: str):
-    return course_key == "newCourse"
-
-
 async def send_message_to_group(user_message_id):
     pass
 
@@ -48,11 +44,16 @@ async def process_teacher_key(msg: types.Message):
     if text_ == 'Отмена':
         await state.set_state(States.TEACHER_STATE[0])
         await msg.answer('Отменено', reply_markup=teacher_main_kb)
-    elif check_course_exists('newCourse'):
-        await state.set_state(States.TEACHER_STATE[0])
-        await msg.answer('Поздравляем вы успешно добавили себе курс ' + text_ + '.', reply_markup=teacher_main_kb)
     else:
-        await msg.answer('Такого ключа не существует.')
+        # TODO: check user's authorization code
+        check = True
+        if not check:
+            await msg.answer('Такого ключа не существует.')
+        elif text_[:3] == 'COU':
+            await state.set_state(States.TEACHER_STATE[0])
+            await msg.answer('Поздравляем вы успешно добавили себе курс ' + text_ + '.', reply_markup=teacher_main_kb)
+        else:
+            await msg.answer('Ошибка. Пожалуйста обратитесь к администрации.')
 
 
 # Генерация списка "курс + группа"
@@ -79,6 +80,7 @@ async def process_courses_btn(msg: types.Message):
 # Показать список "курс + группа" снова, при нажатии кнопки "Назад" из меню выбранного элемента
 @dp.callback_query_handler(state=States.TEACHER_STATE, text='Назад в список курсов')
 async def process_back_course_btn(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
     await coursegroup_menu(callback_query.from_user.id, callback_query.message.message_id, mode='edit')
 
 
@@ -101,6 +103,7 @@ async def process_one_course_btn(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(Text(startswith='create_hw'), state=States.TEACHER_STATE)
 async def process_publish_btn(callback_query: types.CallbackQuery, state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
     coursegroup = callback_query.data.split('|')[1]  # название выбранного элемента ("курс + группа")
     await state.finish()
     await state.set_state(States.TEACHER_CREATE_HW_1_STATE[0])
@@ -110,6 +113,7 @@ async def process_publish_btn(callback_query: types.CallbackQuery, state: FSMCon
 
 @dp.callback_query_handler(Text(startswith='create_massmessage'), state=States.TEACHER_STATE)
 async def process_publish_btn(callback_query: types.CallbackQuery, state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
     coursegroup = callback_query.data.split('|')[1]  # название выбранного элемента ("курс + группа")
     await state.finish()
     await state.set_state(States.TEACHER_CREATE_MASS_MESSAGE_STATE[0])
@@ -139,6 +143,7 @@ async def process_post_message(msg: types.Message, state: FSMContext):
 # Запоминаем заголовок для ДЗ
 @dp.callback_query_handler(state=States.TEACHER_CREATE_HW_1_STATE, text='yes')
 async def process_post_message(callback_query: types.CallbackQuery, state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
     state_data = await state.get_data()
     coursegroup = state_data['coursegroup']
     head = state_data['head']
@@ -158,6 +163,7 @@ async def process_post_message(callback_query: types.CallbackQuery, state: FSMCo
 @dp.callback_query_handler(state=States.TEACHER_CREATE_HW_2_STATE, text='yes')
 async def process_yes_btn(callback_query: types.CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
+    await bot.answer_callback_query(callback_query.id)
     user_data = await state.get_data()
     await bot.edit_message_text(text('ДЗ с заголовком "', user_data['head'], '" будет отправлено для ',
                                      user_data['coursegroup'], '.', sep=''),
@@ -170,6 +176,7 @@ async def process_yes_btn(callback_query: types.CallbackQuery, state: FSMContext
 # Запоминаем и отправляем массовое сообщение
 @dp.callback_query_handler(state=States.TEACHER_CREATE_MASS_MESSAGE_STATE, text='yes')
 async def process_yes_btn(callback_query: types.CallbackQuery, state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
     await bot.answer_callback_query(callback_query.id)
     user_data = await state.get_data()
     await bot.edit_message_text(text('Сообщение: "', user_data['text'], '" будет отправлено для ',
@@ -184,6 +191,7 @@ async def process_yes_btn(callback_query: types.CallbackQuery, state: FSMContext
                                  | States.TEACHER_CREATE_HW_2_STATE, text='edit')
 async def process_edit_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
+    await bot.answer_callback_query(callback_query.id)
     user_id = callback_query.from_user.id
     message_id = callback_query.message.message_id
     await bot.edit_message_text('Введите сообщение еще раз.', user_id, message_id)
@@ -192,6 +200,7 @@ async def process_edit_btn(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(state=States.TEACHER_CREATE_MASS_MESSAGE_STATE | States.TEACHER_CREATE_HW_1_STATE
                                  | States.TEACHER_CREATE_HW_2_STATE, text='cancel')
 async def process_cancel_btn(callback_query: types.CallbackQuery, state: FSMContext):
+    await bot.answer_callback_query(callback_query.id)
     await bot.answer_callback_query(callback_query.id)
     user_id = callback_query.from_user.id
     message_id = callback_query.message.message_id
