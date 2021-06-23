@@ -29,19 +29,19 @@ class Students(BaseModel):
     contact_info = TextField(default='')
     parent = ForeignKeyField(Parents, backref='students')
 
+class Groups(BaseModel):
+    group_key = CharField(unique=True)
+    course_key = CharField(default=None)
+    teacher = ForeignKeyField(Teachers, backref='groups')
+    tutor = ForeignKeyField(Tutors, backref='groups')
+
 class Homework(BaseModel):
     hw_key = CharField(unique=True)
     date = DateField(default='')
     description = TextField(default='')
     attached = BlobField(default='')
     teacher = ForeignKeyField(Teachers, backref='homework')
-
-class Groups(BaseModel):
-    group_key = CharField(unique=True)
-    course_key = CharField(default=None)
-    teacher = ForeignKeyField(Teachers, backref='groups')
-    tutor = ForeignKeyField(Tutors, backref='groups')
-    homework = ForeignKeyField(Homework, backref='groups')
+    group = ForeignKeyField(Groups)
 
 class StudentsGroups(BaseModel):
     students = ForeignKeyField(Students)

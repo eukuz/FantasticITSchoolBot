@@ -87,7 +87,7 @@ class Database:
             raise KeyError
         pass
 
-
 def main():
     app_db = Database()
+
 main()
