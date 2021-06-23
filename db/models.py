@@ -7,35 +7,42 @@ class BaseModel(Model):
         database = db
 
 class Teachers(BaseModel):
-    teacher_key = CharField()
-    contact_info = TextField()
+    teacher_key = CharField(unique=True)
+    UID = CharField(default='')
+    contact_info = TextField(default='')
 
 class Parents(BaseModel):
-    parent_key = CharField()
-    contact_info = TextField()
+    parent_key = CharField(unique=True)
+    UID = CharField(default='')
+    contact_info = TextField(default='')
 
 
 class Tutors(BaseModel):
-    tutor_key = CharField()
-    contact_info = TextField()
+    tutor_key = CharField(unique=True)
+    UID = CharField(default='')
+    contact_info = TextField(default='')
 
 
 class Students(BaseModel):
-    student_key = CharField()
-    contact_info = TextField()
+    student_key = CharField(unique=True)
+    UID = CharField(default='')
+    contact_info = TextField(default='')
     parent = ForeignKeyField(Parents, backref='students')
 
 class Homework(BaseModel):
-    hw_key = CharField()
-    date = DateField()
-    description = TextField()
-    attached = BlobField()
+    hw_key = CharField(unique=True)
+    date = DateField(default='')
+    description = TextField(default='')
+    attached = BlobField(default='')
     teacher = ForeignKeyField(Teachers, backref='homework')
 
 class Groups(BaseModel):
-    group_key = CharField()
-    course_key = CharField()
+    group_key = CharField(unique=True)
+    course_key = CharField(default=None)
     teacher = ForeignKeyField(Teachers, backref='groups')
     tutor = ForeignKeyField(Tutors, backref='groups')
-    students = ManyToManyField(Students, backref='groups')
     homework = ForeignKeyField(Homework, backref='groups')
+
+class StudentsGroups(BaseModel):
+    students = ForeignKeyField(Students)
+    groups = ForeignKeyField(Groups)
