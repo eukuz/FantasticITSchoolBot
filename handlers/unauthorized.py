@@ -34,7 +34,10 @@ async def authorization(msg: types.Message):
     text_ = msg.text                                  # take user's message
     state = dp.current_state(user=msg.from_user.id)  # take current state
     # TODO: check user's authorization code
-    if text_ == 'studentCode':
+    check = True
+    if not check:
+        await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
+    elif text_[:3] == 'STU':
         await state.set_state(States.STUDENT_STATE[0])  # change user's state to STUDENT
         # add main buttons for student
         await msg.answer('Вы успешно авторизовались как ученик.',
@@ -43,21 +46,22 @@ async def authorization(msg: types.Message):
         await msg.answer(text('Пожалуйста, зарегестрируйте родителя.'),
                          parse_mode=ParseMode.MARKDOWN,
                          reply_markup=parent_in_system_kb)
-    elif text_ == 'parentCode':
+    elif text_[:3] == 'PAR':
         await state.set_state(States.PARENT_STATE[0])   # change user's state to PARENT
         # TODO: find children of the parent
         await msg.answer('Вы успешно авторизовались как родитель. Вас добавили дети: ',
                          reply_markup=parent_main_kb)
-    elif text_ == 'tutorCode':
+    elif text_[:3] == 'CUR':
         await state.set_state(States.TUTOR_STATE[0])  # change user's state to TUTOR
         await msg.answer('Вы успешно авторизовались как куратор.',
                          reply_markup=tutor_main_kb)
-    elif text_ == 'teacherCode':
+    elif text_[:3] == 'TEA':
         await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
         await msg.answer('Вы успешно авторизовались как учитель.',
                          reply_markup=teacher_main_kb)
     else:
-        await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
+        # TODO: some error message
+        await msg.answer('Ошибка. Пожалуйста обратитесь к администрации.')
 
 
 @dp.message_handler(state='*')

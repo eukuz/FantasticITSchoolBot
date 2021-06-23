@@ -13,7 +13,7 @@ class KeyGen:
         cursor = conn.cursor()
         while len(keys) != n:
             key = "".join(secrets.choice(symbols) for i in range(13))
-            cursor.execute("SELECT Key FROM " + tableName + " where Key = '" + key + "'")
+            # cursor.execute("SELECT Key FROM " + tableName + " where Key = '" + key + "'")
             if not cursor.fetchone():
                 keys.add(key)
         conn.close()
@@ -25,7 +25,7 @@ class KeyGen:
         values = ""
         for key in keys:
             values += "('" + key + "'),"
-        cursor.execute("INSERT INTO " + tableName + " (Key) VALUES " + values[:-1])
+        # cursor.execute("INSERT INTO " + tableName + " (Key) VALUES " + values[:-1])
         conn.commit()
         conn.close()
 
@@ -65,4 +65,4 @@ def main():
     print(KeyGen.generateNKeys(3, 'Teachers'))
 
 
-main()
+# main()

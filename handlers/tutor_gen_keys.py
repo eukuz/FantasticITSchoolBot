@@ -9,7 +9,7 @@ from loader import bot
 from utils import States
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
-
+from KeyGen import KeyGen
 
 @dp.message_handler(state=States.TUTOR_STATE, text='Сгенерировать ключи')
 async def process_generate_keys_btn(msg: types.Message):
@@ -20,7 +20,7 @@ async def process_generate_keys_btn(msg: types.Message):
     await msg.answer(text='Для кого вы хотите сгенерировать ключи?', reply_markup=gen_kb)
 
 
-@dp.callback_query_handler(Text(startswith='gen '), state=States.TUTOR_STATE)
+@dp.callback_query_handler(Text(startswith='gen'), state=States.TUTOR_STATE)
 async def process_number_gen_btn(callback_query: types.CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     user_id = callback_query.from_user.id
@@ -37,11 +37,11 @@ async def process_number_keys(msg: types.Message, state: FSMContext):
         n = int(msg.text)
         user_data = await state.get_data()
         if user_data['role'] == 'student':
-            keys = ['studentCode1', 'studentCode2', 'studentCode3']
+            keys = KeyGen.generateNKeysStudents(n)
         elif user_data['role'] == 'tutor':
-            keys = ['tutorCode1', 'tutorCode2', 'tutorCode3']
+            keys = KeyGen.generateNKeysCurators(n)
         else:
-            keys = ['teacherCode1', 'teacherCode2', 'teacherCode3']
+            keys = KeyGen.generateNKeysTeachers(n)
         await msg.answer(text(*list(map(code, keys))[:n], sep='\n'), parse_mode=ParseMode.MARKDOWN)
         await state.finish()
         await state.set_state(States.TUTOR_STATE[0])

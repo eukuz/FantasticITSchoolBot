@@ -8,6 +8,7 @@ from aiogram import Bot, Dispatcher, executor, types
 from loader import bot
 from utils import States
 from aiogram.dispatcher.filters import Text
+from KeyGen import KeyGen
 
 
 @dp.message_handler(state=States.TUTOR_STATE, text='Создать')
@@ -51,7 +52,10 @@ async def process_yes_btn(callback_query: types.CallbackQuery):
     s = await state.get_state()
     if s == States.CREATE_COURSE_STATE[0]:
         # TODO: create course
-        await bot.edit_message_text(text('Курс', name, 'успешно создан.'), user_id, message_id)
+        key_course = KeyGen.generateNKeysCourses(1).pop()
+        await bot.edit_message_text(text('Курс', name, 'успешно создан.\nКлюч:', code(key_course)),
+                                    user_id, message_id,
+                                    parse_mode=ParseMode.MARKDOWN)
     else:
         # TODO: generate list of courses
         courses = ['Python', 'Java', 'C++']
@@ -73,8 +77,10 @@ async def process_course_btn(callback_query: types.CallbackQuery):
     message_id = callback_query.message.message_id
     # TODO: create group
     _, course, group = callback_query.data.split()
-    await bot.edit_message_text(text('Группа', group, 'для курса', course, 'успешно создана.'),
-                                user_id, message_id)
+    key_group = KeyGen.generateNKeysGroups(1).pop()
+    await bot.edit_message_text(text('Группа', group, 'для курса', course, 'успешно создана.\nКлюч:', code(key_group)),
+                                user_id, message_id,
+                                parse_mode=ParseMode.MARKDOWN)
 
 
 @dp.callback_query_handler(Text(startswith='edit'), state=States.CREATE_COURSE_STATE | States.CREATE_GROUP_STATE)
