@@ -8,8 +8,7 @@ from aiogram.types import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
 from utils import States
 from loader import dp, bot
-
-# TODO create single file with all keyboards, buttons and text
+from db import app_db
 from .student_buttons import parent_in_system_kb
 from .student_buttons import student_main_kb
 from .parent import parent_main_kb

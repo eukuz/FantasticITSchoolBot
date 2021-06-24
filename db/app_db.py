@@ -1,6 +1,7 @@
 from db.models import *
 from peewee import *
 
+
 class Database:
     def __init__(self):
         self._db = db
@@ -87,7 +88,5 @@ class Database:
             raise KeyError
         pass
 
-def main():
-    app_db = Database()
 
-main()
+app_db = Database()
