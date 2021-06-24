@@ -1,3 +1,0 @@
-connections = {
-    'SQLite': 'TestKeyStoreDB.db'
-}
