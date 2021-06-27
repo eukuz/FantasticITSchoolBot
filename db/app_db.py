@@ -7,8 +7,16 @@ class Database:
     def __init__(self):
         self._db = db
         self._db.connect()
-        self._db.create_tables([Teachers, Parents, Tutors, Students, Homework, Groups, StudentsGroups])
+        self._db.create_tables([Teachers, Parents, Tutors, Students, Homework, Groups, StudentsGroups, Courses])
+        self.__create_dummies()
         self._db.close()
+
+    def __create_dummies(self):
+        zero_teacher = Teachers.get_or_create(teacher_key='0')
+        zero_parent = Parents.get_or_create(parent_key='0')
+        zero_tutor = Tutors.get_or_create(tutor_key='0')
+        zero_course = Courses.get_or_create(course_key='0')
+        zero_group = Groups.get_or_create(group_key='0', teacher=zero_teacher[0], tutor=zero_tutor[0], course=zero_course[0])
 
     def register_parent(self, **fields):
         if 'parent_key' not in fields.keys():
@@ -22,27 +30,15 @@ class Database:
         return new_parent[0]
 
     def register_student(self, **fields):
-        if 'parent_key' not in fields.keys() or 'student_key' not in fields.keys():
+        if 'student_key' not in fields.keys():
             raise KeyError
-
         existing_fields = [i.name for i in self._db.get_columns('students')]
         needed_fields = {}
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        p_key = fields['parent_key']
-        new_parent = self.register_parent(parent_key=p_key)
-        try:
-            new_student = Students.get_or_create(parent_id=new_parent, **needed_fields)
-        except IndexError:
-            print('Index error.')
-            return
-        except DoesNotExist:
-            print("Does not exist error.")
-            return
-        except IntegrityError:
-            print("Integrity Error.")
-            return
+        dummy_parent = Parents.get(parent_key='0')
+        new_student = Students.get_or_create(parent=dummy_parent, **needed_fields)
         return new_student[0]
 
     def register_teacher(self, **fields):
@@ -68,20 +64,31 @@ class Database:
         return new_tutor[0]
 
     def register_homework(self, **fields):
-        if 'teacher_key' not in fields.keys() or 'hw_key' not in fields.keys():
+        if 'hw_key' not in fields.keys():
             raise KeyError
         existing_fields = [i.name for i in self._db.get_columns('homework')]
         needed_fields = {}
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        t_key = fields['teacher_key']
-        new_teacher = self.register_teacher(teacher_key=t_key)
-        new_hw = Tutors.get_or_create(teacher_id=new_teacher, **needed_fields)
+        dummy_teacher = Teachers.get(teacher_key='0')
+        dummy_group = Groups.get(group_key='0')
+        new_hw = Homework.get_or_create(teacher=dummy_teacher, group=dummy_group, **needed_fields)
         return new_hw[0]
 
     def register_group(self, **fields):
-        pass
+        if 'group_key' not in fields.keys():
+            raise KeyError
+        existing_fields = [i.name for i in self._db.get_columns('homework')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+        dummy_teacher = Teachers.get(teacher_key='0')
+        dummy_tutor = Tutors.get(tutor_key='0')
+        dummy_course = Courses.get(course_key='0')
+        new_group = Groups.get_or_create(teacher=dummy_teacher, tutor=dummy_tutor, course=dummy_course **needed_fields)
+        return new_group[0]
 
     def register(self, table_name, **fields):
         if table_name == 'groups':
@@ -98,7 +105,6 @@ class Database:
             self.register_tutor(**fields)
         else:
             raise KeyError
-        pass
 
     def get_user_type_from_key(self, key):
         user_type = ''
@@ -117,7 +123,8 @@ class Database:
             user_type = "Groups"
         return user_type
 
-    # Link student to parent by keys
+        # Link student to parent by keys
+
     def tie_parent(self, student_key, parent_key):
         student = self.get_entity_by_key(student_key, 'student')
         student.parent = self.get_entity_by_key(parent_key, 'parent')
@@ -125,7 +132,7 @@ class Database:
     def course_list(self, student_key):
         pass
 
-    # ???
+        # ???
 
     def course_info(self, course_key):
         for g in StudentsGroups:
@@ -191,6 +198,5 @@ class Database:
 
 def main():
     app_db = Database()
-
 
 main()

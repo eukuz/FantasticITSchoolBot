@@ -1,15 +1,13 @@
 import string
 import secrets
-import sqlite3
-from strings import connections
 
 
 class KeyGen:
-    @staticmethod
+    '''@staticmethod
     def __generateNKeys(n, tableName):
         symbols = string.digits + string.ascii_letters
         keys = set()
-        conn = sqlite3.connect(connections["SQLite"])
+        #conn = sqlite3.connect(connections["SQLite"])
         cursor = conn.cursor()
         while len(keys) != n:
             key = "".join(secrets.choice(symbols) for i in range(13))
@@ -18,6 +16,7 @@ class KeyGen:
                 keys.add(key)
         conn.close()
         return keys
+
 
     def __writeKeysToDB(keys, tableName):
         conn = sqlite3.connect(connections["SQLite"])
@@ -58,11 +57,8 @@ class KeyGen:
 
     def generateNKeys(n, tableName):
         return KeyGen.__getKeys(n, tableName)
-
-
-def main():
-    print(KeyGen.generateNKeysStudents(3))
-    print(KeyGen.generateNKeys(3, 'Teachers'))
+         '''
+    pass
 
 
 # main()
