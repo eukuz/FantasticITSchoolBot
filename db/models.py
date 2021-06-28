@@ -1,6 +1,8 @@
 from peewee import *
 
-db = SqliteDatabase('ITSchoolBotDB')
+db = SqliteDatabase('ITSchoolBotDB', pragmas={
+    'ignore_check_constraints': 0
+})
 
 
 class BaseModel(Model):
@@ -32,9 +34,11 @@ class Students(BaseModel):
     contact_info = TextField(default='')
     parent = ForeignKeyField(Parents, backref='students')
 
+
 class Courses(BaseModel):
     course_key = CharField(unique=True)
     course_info = TextField(default='')
+
 
 class Groups(BaseModel):
     group_key = CharField(unique=True)
@@ -52,6 +56,7 @@ class Homework(BaseModel):
     group = ForeignKeyField(Groups, backref='homework')
 
 
+# Perhaps rename to something like StudentGroupMap?
 class StudentsGroups(BaseModel):
     students = ForeignKeyField(Students)
     groups = ForeignKeyField(Groups)

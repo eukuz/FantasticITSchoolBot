@@ -1,6 +1,6 @@
-from peewee import *
+from FantasticITSchoolBot.db.models import *
 
-from db.models import *
+debug_console_messages = True
 
 
 class Database:
@@ -16,7 +16,8 @@ class Database:
         zero_parent = Parents.get_or_create(parent_key='0')
         zero_tutor = Tutors.get_or_create(tutor_key='0')
         zero_course = Courses.get_or_create(course_key='0')
-        zero_group = Groups.get_or_create(group_key='0', teacher=zero_teacher[0], tutor=zero_tutor[0], course=zero_course[0])
+        zero_group = Groups.get_or_create(group_key='0', teacher=zero_teacher[0], tutor=zero_tutor[0],
+                                          course=zero_course[0])
 
     def register_parent(self, **fields):
         if 'parent_key' not in fields.keys():
@@ -27,7 +28,7 @@ class Database:
             if key in existing_fields:
                 needed_fields[key] = value
         new_parent = Parents.get_or_create(**needed_fields)
-        return new_parent[0]
+        return new_parent
 
     def register_student(self, **fields):
         if 'student_key' not in fields.keys():
@@ -37,9 +38,16 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        dummy_parent = Parents.get(parent_key='0')
-        new_student = Students.get_or_create(parent=dummy_parent, **needed_fields)
-        return new_student[0]
+
+        dummy_parent = fields['parent'] if 'parent' in fields else Parents.get(parent_key='0')
+        try:
+            new_student = Students.get_or_create(parent=dummy_parent, **needed_fields)
+            # return new_student[0]
+            self.get_entity_by_key(fields['student_key'], 'student')
+        except IntegrityError:
+            if debug_console_messages:
+                print("Student with key exists, Integrity error.")
+            return self.get_entity_by_key(fields['student_key'], 'student')
 
     def register_teacher(self, **fields):
         if 'teacher_key' not in fields.keys():
@@ -50,7 +58,7 @@ class Database:
             if key in existing_fields:
                 needed_fields[key] = value
         new_teacher = Teachers.get_or_create(**needed_fields)
-        return new_teacher[0]
+        return new_teacher
 
     def register_tutor(self, **fields):
         if 'tutor_key' not in fields.keys():
@@ -61,7 +69,18 @@ class Database:
             if key in existing_fields:
                 needed_fields[key] = value
         new_tutor = Tutors.get_or_create(**needed_fields)
-        return new_tutor[0]
+        return new_tutor
+
+    def register_course(self, **fields):
+        if 'course_key' not in fields.keys():
+            raise KeyError
+        existing_fields = [i.name for i in self._db.get_columns('courses')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+        new_course = Courses.get_or_create(**needed_fields)
+        return new_course
 
     def register_homework(self, **fields):
         if 'hw_key' not in fields.keys():
@@ -71,24 +90,35 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        dummy_teacher = Teachers.get(teacher_key='0')
-        dummy_group = Groups.get(group_key='0')
+        dummy_teacher = fields['teacher'] if 'teacher' in fields else Teachers.get(teacher_key='0')
+        dummy_group = fields['group'] if 'group' in fields else Groups.get(group_key='0')
         new_hw = Homework.get_or_create(teacher=dummy_teacher, group=dummy_group, **needed_fields)
-        return new_hw[0]
+        return new_hw
 
     def register_group(self, **fields):
         if 'group_key' not in fields.keys():
             raise KeyError
-        existing_fields = [i.name for i in self._db.get_columns('homework')]
+        query = Groups.select().where(Groups.group_key == fields['group_key'])
+        if query.exists():
+            if debug_console_messages:
+                print('Group already exists.')
+            existing_group = self.get_entity_by_key(fields['group_key'], 'group')
+            # TODO update the given group
+            return existing_group
+
+        existing_fields = [i.name for i in self._db.get_columns('groups')]
         needed_fields = {}
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        dummy_teacher = Teachers.get(teacher_key='0')
-        dummy_tutor = Tutors.get(tutor_key='0')
-        dummy_course = Courses.get(course_key='0')
-        new_group = Groups.get_or_create(teacher=dummy_teacher, tutor=dummy_tutor, course=dummy_course **needed_fields)
-        return new_group[0]
+
+        # This will initialize new group with fields provided as arguments
+        dummy_teacher = fields['teacher'] if 'teacher' in fields else Teachers.get(teacher_key='0')
+        dummy_tutor = fields['tutor'] if 'tutor' in fields else Tutors.get(tutor_key='0')
+        dummy_course = fields['course'] if 'course' in fields else Courses.get(course_key='0')
+
+        new_group = Groups.get_or_create(teacher=dummy_teacher, tutor=dummy_tutor, course=dummy_course, **needed_fields)
+        return new_group
 
     def register(self, table_name, **fields):
         if table_name == 'groups':
@@ -105,6 +135,11 @@ class Database:
             self.register_tutor(**fields)
         else:
             raise KeyError
+
+    # Assigns student to group in StudentGroup
+    def map_student_group(self):
+        pass
+        # TODO
 
     def get_user_type_from_key(self, key):
         user_type = ''
@@ -127,23 +162,8 @@ class Database:
 
     def tie_parent(self, student_key, parent_key):
         student = self.get_entity_by_key(student_key, 'student')
-        student.parent = self.get_entity_by_key(parent_key, 'parent')
-
-    def course_list(self, student_key):
-        pass
-
-        # ???
-
-    def course_info(self, course_key):
-        for g in StudentsGroups:
-            print(g)
-
-    def hw_by_course_and_number(self, course_key, lesson_n):
-        pass
-        # we actually don't have lesson number...
-
-    def assign_course_to_student(self, student_key, course_key):
-        pass
+        student.parent_id = self.get_entity_by_key(parent_key, 'parent')
+        student.save()
 
     def get_students_from_parent(self, parent_key):
         students = []
@@ -196,7 +216,32 @@ class Database:
             return self.handle_doesnt_exist_error()
 
 
+def test(app_db):
+    app_db.register_parent(parent_key='p1')
+    app_db.register_parent(parent_key='p2')
+    app_db.register_parent(parent_key='p3')
+    app_db.register_parent(parent_key='p4')
+
+    app_db.register_student(student_key='s1')
+    app_db.register_student(student_key='s2')
+    app_db.register_student(student_key='s3')
+    s4 = app_db.register_student(student_key='s4')
+
+    app_db.tie_parent('s1', 'p3')
+    app_db.tie_parent('s2', 'p1')
+    app_db.tie_parent('s3', 'p4')
+    app_db.tie_parent('s4', 'p2')
+
+    app_db.register_teacher(teacher_key='teacher1')
+    app_db.register_tutor(tutor_key='tutor1')
+    app_db.register_course(course_key='course1')
+
+    app_db.register_group(group_key='g1', course='course1', teacher='teacher1', tutor='tutor1')
+
+
 def main():
     app_db = Database()
+    test(app_db)
+
 
 main()
