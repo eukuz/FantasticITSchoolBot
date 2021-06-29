@@ -1,15 +1,15 @@
 from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
-from .unauthorized import dp
 from aiogram.utils.markdown import text, bold, italic, code
 from aiogram.types import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
-from loader import bot
+from loader import dp, bot
 from utils import States
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from KeyGen import KeyGen
+
 
 @dp.message_handler(state=States.TUTOR_STATE, text='Сгенерировать ключи')
 async def process_generate_keys_btn(msg: types.Message):

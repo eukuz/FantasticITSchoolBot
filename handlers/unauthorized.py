@@ -1,26 +1,19 @@
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
-from aiogram.utils.markdown import text, bold, italic, code
-from aiogram.types import ParseMode
-from aiogram import Bot, Dispatcher, executor, types
-from utils import States
-from loader import dp, bot
-from db import app_db
-from .student_buttons import parent_in_system_kb
-from .student_buttons import student_main_kb
+from aiogram.types.chat import ChatType
+from handlers.student.student_register_parent import parent_in_system_kb
+from handlers.student.student_main import student_main_kb
 from .parent import parent_main_kb
-from .tutor_main import tutor_main_kb
-from .tutor_gen_keys import *
-from .tutor_create import *
-from .tutor_publish import *
+from handlers.tutor.tutor_main import tutor_main_kb
+from handlers.tutor.tutor_publish import *
 from .teacher import teacher_main_kb
+from loader import dp, bot
+from .student import *
+from .tutor import *
 
 
 @dp.message_handler(state='*', commands=['start'])
 async def process_start_command(message: types.Message):
+    if ChatType.is_group_or_super_group(message.chat):
+        return
     state = dp.current_state(user=message.from_user.id)  # take current state of user
     await state.set_state(States.UNAUTHORIZED_STATE[0])  # user is unauthorized in the very beginning
     await message.answer('Привет, я бот введите пожалуйста ключ :)',
@@ -63,6 +56,24 @@ async def authorization(msg: types.Message):
         await msg.answer('Ошибка. Пожалуйста обратитесь к администрации.')
 
 
+# Exit button
+@dp.message_handler(state=States.STUDENT_STATE | States.PARENT_STATE |
+                          States.TUTOR_STATE | States.TEACHER_STATE, text='Выйти')
+async def process_exit_btn(msg: types.Message):
+    state = dp.current_state(user=msg.from_user.id)  # take current state
+    await state.set_state(States.UNAUTHORIZED_STATE[0])  # unauthorize user
+    await msg.answer('Вы успешно вышли из системы.',
+                     parse_mode=ParseMode.MARKDOWN,
+                     reply_markup=ReplyKeyboardRemove())
+
+
 @dp.message_handler(state='*')
 async def echo_message(msg: types.Message):
+    if ChatType.is_group_or_super_group(msg.chat):
+        return
     await msg.answer('Я вас не понял. Попробуйте другую команду.')
+
+
+async def publish_msg(students, msg: types.Message):
+    for id in students:
+        await bot.send_message(id, text=msg.text)

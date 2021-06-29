@@ -1,4 +1,4 @@
-from FantasticITSchoolBot.db.models import *
+from db.models import *
 
 debug_console_messages = True
 

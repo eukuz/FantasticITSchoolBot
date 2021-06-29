@@ -1,11 +1,9 @@
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
 from .unauthorized import dp
-from .student_buttons import get_student_schedule
-from aiogram.utils.markdown import text, bold, italic, code
+from aiogram.utils.markdown import text
 from aiogram.types import ParseMode
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import types
 from loader import bot
 from utils import States
 from aiogram.dispatcher.filters import Text

@@ -1,14 +1,10 @@
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton
-from .unauthorized import dp
-from .student_buttons import get_student_schedule
-from aiogram.utils.markdown import text, bold, italic, code
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from loader import dp
+from handlers.student.student_schedule import get_student_schedule
+from aiogram.utils.markdown import text, bold
 from aiogram.types import ParseMode
-from aiogram import Bot, Dispatcher, executor, types
-from loader import bot
+from aiogram import types
 from utils import States
-from aiogram.dispatcher.filters import Text
 
 parent_schedule_btn = KeyboardButton('Расписание')  #
 parent_query_btn = KeyboardButton('Запрос')
