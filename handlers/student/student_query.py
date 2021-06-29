@@ -64,7 +64,10 @@ async def process_student_question(msg: types.Message, state: FSMContext):
     await bot.edit_message_reply_markup(msg.from_user.id, user_data['msg_id'], reply_markup=query_kb)
     await msg.answer('Ваше сообщение направлено администраторам. Ожидайте ответ в ближайшее время.')
     # Forward message to the admins' chat
-    await bot.send_message(chat_id=GROUP, text=text('Вопрос от ', code(msg.from_user.id), '.', sep=''),
+    user_id = msg.from_user.id
+    user_name = msg.from_user.full_name
+    await bot.send_message(chat_id=GROUP,
+                           text=text(code(user_id), '.', 'Вопрос от ' + user_name + '.', sep=''),
                            parse_mode=ParseMode.MARKDOWN)
     await msg.forward(chat_id=GROUP)
 
@@ -89,16 +92,18 @@ async def process_sickness_btn(callback_query: types.CallbackQuery, state: FSMCo
 
 
 # Forward evidence to the admins' chat
-@dp.message_handler(state=States.SICK_STATE)
+@dp.message_handler(state=States.SICK_STATE, content_types=['photo', 'document', 'text'])
 async def process_sick_evidence(msg: types.Message, state: FSMContext):
     user_data = await state.get_data()
-    # print('I am here')
     # Delete Back button from the inline buttons
     query_kb = create_query_kb(True)
     await bot.edit_message_reply_markup(msg.from_user.id, user_data['msg_id'], reply_markup=query_kb)
     await msg.answer('Принято, ожидайте подтверждения.')
     # Forward message to admins chat
-    await bot.send_message(chat_id=GROUP, text=text('Справка от ', code(msg.from_user.id), '.', sep=''),
+    user_id = msg.from_user.id
+    user_name = msg.from_user.full_name
+    await bot.send_message(chat_id=GROUP,
+                           text=text(code(user_id), '.', 'Справка от ' + user_name + '.', sep=''),
                            parse_mode=ParseMode.MARKDOWN)
     await msg.forward(chat_id=GROUP)
     # Change state
@@ -109,12 +114,15 @@ async def process_sick_evidence(msg: types.Message, state: FSMContext):
         await state.set_state(States.PARENT_STATE[0])
 
 
-
 # Feedback button
 @dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='feedback')
 async def process_feedback_btn(callback_query: types.CallbackQuery):
-    # TODO: ask feedback from admins
+    user_name = callback_query.from_user.full_name
+    user_id = callback_query.from_user.id
     await callback_query.answer('Запрос отправлен. Ожидайте ответа')
+    await bot.send_message(chat_id=GROUP,
+                           text=text(code(user_id), '.', 'Требуется фидбек для ' + user_name + '.', sep=''),
+                           parse_mode=ParseMode.MARKDOWN)
 
 
 # Back to the main query menu button

@@ -70,8 +70,17 @@ async def process_exit_btn(msg: types.Message):
 @dp.message_handler(state='*')
 async def echo_message(msg: types.Message):
     if ChatType.is_group_or_super_group(msg.chat):
-        return
-    await msg.answer('Я вас не понял. Попробуйте другую команду.')
+        # if msg.is_forward():
+        #     print('Hello')
+        try:
+            source_message = msg.reply_to_message
+            user_id = source_message.text.split('.')[0]
+            await msg.answer('Ваше сообщение успешно отправлено.')
+            await bot.send_message(user_id, text=msg.text)
+        except:
+            pass
+    else:
+        await msg.answer('Я вас не понял. Попробуйте другую команду.')
 
 
 async def publish_msg(students, msg: types.Message):
