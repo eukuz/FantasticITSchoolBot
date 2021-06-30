@@ -1,4 +1,4 @@
-from db.models import *
+from FantasticITSchoolBot.db.models import *
 
 debug_console_messages = True
 
@@ -136,11 +136,6 @@ class Database:
         else:
             raise KeyError
 
-    # Assigns student to group in StudentGroup
-    def map_student_group(self):
-        pass
-        # TODO
-
     def get_user_type_from_key(self, key):
         user_type = ''
         key = key[0:3]
@@ -160,6 +155,19 @@ class Database:
 
         # Link student to parent by keys
 
+    # Assigns student to group in StudentGroup
+    def map_student_group(self, student_key, group_key):
+        StudentsGroups.get_or_create(students=self.get_entity_by_key(student_key, 'student'),
+                                     groups=self.get_entity_by_key(group_key, 'group'))
+
+    # # Gets group key by student key, returns the first occurence
+    # def get_group_key_by_student_key(self, student_key):
+    #     # g = StudentsGroups.get(StudentsGroups.students.student_key == student_key)
+    #
+    #     for g in StudentsGroups:
+    #         if g.students.student_key == student_key:
+    #             return g.groups
+
     def tie_parent(self, student_key, parent_key):
         student = self.get_entity_by_key(student_key, 'student')
         student.parent_id = self.get_entity_by_key(parent_key, 'parent')
@@ -171,6 +179,29 @@ class Database:
             if s.parent.parent_key == parent_key:
                 students.append(s)
         return students
+
+    def get_parent_key_from_student(self, student_key):
+        for s in Students:
+            if s.student_key == student_key:
+                return s.parent_key
+
+    def get_groups_by_student_key(self, student_key):
+        groups = []
+        for sg in StudentsGroups:
+            if sg.students.student_key == student_key:
+                groups.append(sg.groups)
+        return groups
+
+    def get_groups_of_children_from_parent_key(self, parent_key):
+        result = []
+        children = self.get_students_from_parent(parent_key)
+        for c in children:
+            result.append(self.get_groups_by_student_key(c.student_key))
+        return result
+
+    def get_homeworks_from_group(self, group_key):
+        # TODO homeworks and groups are not tied yet
+        pass
 
     def handle_doesnt_exist_error(self):
         return []
@@ -225,18 +256,38 @@ def test(app_db):
     app_db.register_student(student_key='s1')
     app_db.register_student(student_key='s2')
     app_db.register_student(student_key='s3')
-    s4 = app_db.register_student(student_key='s4')
+    app_db.register_student(student_key='s4')
+    app_db.register_student(student_key='s5')
 
     app_db.tie_parent('s1', 'p3')
     app_db.tie_parent('s2', 'p1')
     app_db.tie_parent('s3', 'p4')
     app_db.tie_parent('s4', 'p2')
+    app_db.tie_parent('s5', 'p2')
 
     app_db.register_teacher(teacher_key='teacher1')
     app_db.register_tutor(tutor_key='tutor1')
     app_db.register_course(course_key='course1')
+    app_db.register_teacher(teacher_key='teacher2')
+    app_db.register_tutor(tutor_key='tutor2')
+    app_db.register_course(course_key='course2')
 
     app_db.register_group(group_key='g1', course='course1', teacher='teacher1', tutor='tutor1')
+    app_db.register_group(group_key='g2', course='course2', teacher='teacher2', tutor='tutor2')
+
+    app_db.map_student_group('s2', 'g1')
+    app_db.map_student_group('s4', 'g1')
+    app_db.map_student_group('s5', 'g1')
+
+    app_db.map_student_group('s1', 'g2')
+    app_db.map_student_group('s3', 'g2')
+    app_db.map_student_group('s5', 'g2')
+
+    print(app_db.get_students_from_parent('p2'))
+
+    print(app_db.get_groups_by_student_key('s5'))
+
+    print(app_db.get_groups_of_children_from_parent_key('p2'))
 
 
 def main():
