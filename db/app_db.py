@@ -1,4 +1,6 @@
-from FantasticITSchoolBot.db.models import *
+from peewee import Expression
+
+from db.models import *
 
 debug_console_messages = True
 
@@ -39,15 +41,9 @@ class Database:
             if key in existing_fields:
                 needed_fields[key] = value
 
-        dummy_parent = fields['parent'] if 'parent' in fields else Parents.get(parent_key='0')
-        try:
-            new_student = Students.get_or_create(parent=dummy_parent, **needed_fields)
-            # return new_student[0]
-            self.get_entity_by_key(fields['student_key'], 'student')
-        except IntegrityError:
-            if debug_console_messages:
-                print("Student with key exists, Integrity error.")
-            return self.get_entity_by_key(fields['student_key'], 'student')
+        dummy_parent = Parents.get(parent_key=fields['parent']) if 'parent' in fields else Parents.get(parent_key='0')
+        new_student = Students.get_or_create(parent=dummy_parent, **needed_fields)
+        return new_student[0]
 
     def register_teacher(self, **fields):
         if 'teacher_key' not in fields.keys():
@@ -90,32 +86,27 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        dummy_teacher = fields['teacher'] if 'teacher' in fields else Teachers.get(teacher_key='0')
-        dummy_group = fields['group'] if 'group' in fields else Groups.get(group_key='0')
+        dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(teacher_key='0')
+        dummy_group = Groups.get(group_key=fields['group']) if 'group' in fields else Groups.get(group_key='0')
         new_hw = Homework.get_or_create(teacher=dummy_teacher, group=dummy_group, **needed_fields)
         return new_hw
 
     def register_group(self, **fields):
         if 'group_key' not in fields.keys():
             raise KeyError
-        query = Groups.select().where(Groups.group_key == fields['group_key'])
-        if query.exists():
-            if debug_console_messages:
-                print('Group already exists.')
-            existing_group = self.get_entity_by_key(fields['group_key'], 'group')
-            # TODO update the given group
-            return existing_group
 
         existing_fields = [i.name for i in self._db.get_columns('groups')]
         needed_fields = {}
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-
+        check = Groups.get_or_none(group_key=needed_fields['group_key'])
+        if check is not None:
+            return check
         # This will initialize new group with fields provided as arguments
-        dummy_teacher = fields['teacher'] if 'teacher' in fields else Teachers.get(teacher_key='0')
-        dummy_tutor = fields['tutor'] if 'tutor' in fields else Tutors.get(tutor_key='0')
-        dummy_course = fields['course'] if 'course' in fields else Courses.get(course_key='0')
+        dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(teacher_key='0')
+        dummy_tutor = Tutors.get(tutor_key=fields['tutor']) if 'tutor' in fields else Tutors.get(tutor_key='0')
+        dummy_course = Courses.get(course_key=fields['course']) if 'course' in fields else Courses.get(course_key='0')
 
         new_group = Groups.get_or_create(teacher=dummy_teacher, tutor=dummy_tutor, course=dummy_course, **needed_fields)
         return new_group
@@ -135,6 +126,93 @@ class Database:
             self.register_tutor(**fields)
         else:
             raise KeyError
+
+    def get_parent(self, **fields):
+        existing_fields = [i.name for i in self._db.get_columns('parents')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+
+        parents = [i for i in Parents.select().filter(**needed_fields)]
+        return parents
+
+    def get_student(self, **fields):
+        existing_fields = [i.name for i in self._db.get_columns('students')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+
+        students = [i for i in Students.select().filter(**needed_fields)]
+        return students
+
+    def get_teacher(self, **fields):
+        existing_fields = [i.name for i in self._db.get_columns('teachers')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+
+        teachers = [i for i in Teachers.select().filter(**needed_fields)]
+        return teachers
+
+    def get_tutor(self, **fields):
+        existing_fields = [i.name for i in self._db.get_columns('tutors')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+
+        tutors = [i for i in Tutors.select().filter(**needed_fields)]
+        return tutors
+
+    def get_course(self, **fields):
+        existing_fields = [i.name for i in self._db.get_columns('tutors')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+
+        courses = [i for i in Courses.select().filter(**needed_fields)]
+        return courses
+
+    def get_homework(self, **fields):
+        existing_fields = [i.name for i in self._db.get_columns('tutors')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+
+        hws = [i for i in Homework.select().filter(**needed_fields)]
+        return hws
+
+    def get_group(self, **fields):
+        existing_fields = [i.name for i in self._db.get_columns('tutors')]
+        needed_fields = {}
+        for key, value in fields.items():
+            if key in existing_fields:
+                needed_fields[key] = value
+
+        groups = [i for i in Groups.select().filter(**needed_fields)]
+        return groups
+
+    def get(self, table_name, **fields):
+        if table_name == 'groups':
+            self.register_group(**fields)
+        elif table_name == 'homework':
+            self.register_homework(**fields)
+        elif table_name == 'parents':
+            self.register_parent(**fields)
+        elif table_name == 'students':
+            self.register_student(**fields)
+        elif table_name == 'teachers':
+            self.register_teacher(**fields)
+        elif table_name == 'tutor':
+            self.register_tutor(**fields)
+        else:
+            raise KeyError
+
 
     def get_user_type_from_key(self, key):
         user_type = ''
@@ -256,39 +334,15 @@ def test(app_db):
     app_db.register_student(student_key='s1')
     app_db.register_student(student_key='s2')
     app_db.register_student(student_key='s3')
-    app_db.register_student(student_key='s4')
-    app_db.register_student(student_key='s5')
-
-    app_db.tie_parent('s1', 'p3')
-    app_db.tie_parent('s2', 'p1')
-    app_db.tie_parent('s3', 'p4')
-    app_db.tie_parent('s4', 'p2')
-    app_db.tie_parent('s5', 'p2')
+    s4 = app_db.register_student(student_key='s4')
 
     app_db.register_teacher(teacher_key='teacher1')
     app_db.register_tutor(tutor_key='tutor1')
     app_db.register_course(course_key='course1')
-    app_db.register_teacher(teacher_key='teacher2')
-    app_db.register_tutor(tutor_key='tutor2')
-    app_db.register_course(course_key='course2')
 
     app_db.register_group(group_key='g1', course='course1', teacher='teacher1', tutor='tutor1')
-    app_db.register_group(group_key='g2', course='course2', teacher='teacher2', tutor='tutor2')
 
-    app_db.map_student_group('s2', 'g1')
-    app_db.map_student_group('s4', 'g1')
-    app_db.map_student_group('s5', 'g1')
-
-    app_db.map_student_group('s1', 'g2')
-    app_db.map_student_group('s3', 'g2')
-    app_db.map_student_group('s5', 'g2')
-
-    print(app_db.get_students_from_parent('p2'))
-
-    print(app_db.get_groups_by_student_key('s5'))
-
-    print(app_db.get_groups_of_children_from_parent_key('p2'))
-
+    print(app_db.get_parent(UID='', student_key='s1'))
 
 def main():
     app_db = Database()
