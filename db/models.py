@@ -12,7 +12,7 @@ class BaseModel(Model):
 
 class Teachers(BaseModel):
     teacher_key = CharField(unique=True)
-    UID = CharField(default='')
+    UID = CharField(unique=True)
     full_name = CharField(default='')
     alias = CharField(default='')
     phone_number = CharField(default='')
@@ -20,7 +20,7 @@ class Teachers(BaseModel):
 
 class Parents(BaseModel):
     parent_key = CharField(unique=True)
-    UID = CharField(default='')
+    UID = CharField(unique=True)
     full_name = CharField(default='')
     alias = CharField(default='')
     phone_number = CharField(default='')
@@ -28,7 +28,7 @@ class Parents(BaseModel):
 
 class Tutors(BaseModel):
     tutor_key = CharField(unique=True)
-    UID = CharField(default='')
+    UID = CharField(unique=True)
     full_name = CharField(default='')
     alias = CharField(default='')
     phone_number = CharField(default='')
@@ -36,7 +36,7 @@ class Tutors(BaseModel):
 
 class Students(BaseModel):
     student_key = CharField(unique=True)
-    UID = CharField(default='')
+    UID = CharField(unique=True)
     full_name = CharField(default='')
     alias = CharField(default='')
     phone_number = CharField(default='')
@@ -46,7 +46,7 @@ class Students(BaseModel):
 class Courses(BaseModel):
     course_key = CharField(unique=True)
     name = CharField(default='')
-    info = CharField(default='')
+    info = TextField(default='')
 
 
 class Groups(BaseModel):
@@ -59,6 +59,7 @@ class Groups(BaseModel):
 
 class Homework(BaseModel):
     hw_key = CharField(unique=True)
+    subject = CharField(default='')
     date = DateField(default='')
     description = TextField(default='')
     attached = BlobField(default='')
@@ -68,5 +69,5 @@ class Homework(BaseModel):
 
 # Perhaps rename to something like StudentGroupMap? Too long
 class StudentsGroups(BaseModel):
-    students = ForeignKeyField(Students)
-    groups = ForeignKeyField(Groups)
+    student = ForeignKeyField(Students)
+    group = ForeignKeyField(Groups)
