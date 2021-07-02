@@ -332,6 +332,7 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 group_fields[key] = value
+        print(group_fields)
         additional_fields = ['student_UID', 'tutor_UID', 'teacher_UID'] # Additional fields that could be passed in args
         other_fields = {}
         for key, value in fields.items():
@@ -340,14 +341,15 @@ class Database:
         student = self.get_student(UID=other_fields['student_UID']) if 'student_UID' in other_fields.keys() else None
         teacher = self.get_teacher(UID=other_fields['teacher_UID']) if 'teacher_UID' in other_fields.keys() else None
         tutor = self.get_tutor(UID=other_fields['tutor_UID']) if 'tutor_UID' in other_fields.keys() else None
-        query = Groups.select().join(StudentsGroups).join(Students)
+        query = Groups.select().filter(**group_fields)
+        print(query)
         if student is not None:
-            query.where(Students.UID == student.UID)
+            query.join(StudentsGroups).join(Students).where(Students.UID == student.UID)
         if teacher is not None:
             query.where(Groups.teacher == teacher)
         if tutor is not None:
             query.where(Groups.tutor == tutor)
-        groups = [i for i in query.filter(**group_fields)]
+        groups = [i for i in query]
         # Expect a single value if search by unique fields, list if by student, teacher, tutor UIDs or by non-unique
         return groups if len(groups) > 1 else groups[0] if len(groups) == 1 else None
 
