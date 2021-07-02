@@ -48,7 +48,7 @@ async def process_one_course_btn(callback_query: types.CallbackQuery):
     for i in range(len(lessons)):
         lesson_btn = InlineKeyboardButton(lessons[i], callback_data='presentation ' + course + ' ' + lessons[i])  # send presentation for this lesson
         get_hw_btn = InlineKeyboardButton('Получить домашнее задание', callback_data='gethw ' + course + ' ' + lessons[i])  # get homework
-        send_hw_btn = InlineKeyboardButton('Отправить домашнее задание', callback_data='sendhw ' + course + ' ' + lessons[i])  # send homework
+        send_hw_btn = InlineKeyboardButton('Отправить домашнее задание', callback_data='sendhw$' + course + '$' + lessons[i])  # send homework
         lessons_kb.row(lesson_btn, get_hw_btn, send_hw_btn)
     back_btn = InlineKeyboardButton('Назад', callback_data='Список курсов')
     lessons_kb.insert(back_btn)
@@ -61,3 +61,32 @@ async def process_one_course_btn(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(state=States.STUDENT_STATE, text='Список курсов')
 async def process_back_course_btn(callback_query: types.CallbackQuery):
     await course_menu(callback_query.from_user.id, callback_query.message.message_id, mode='edit')
+
+
+# Send homework to the admins' chat
+@dp.callback_query_handler(Text(startswith='sendhw'), state=States.STUDENT_STATE)
+async def process_send_hw_btn(callback_query: types.CallbackQuery, state: FSMContext):
+    await callback_query.answer('Пожалуйста отправьте домашнее задание')
+    await state.set_state(States.STUDENT_HW_STATE[0])
+    _, course, lesson = callback_query.data.split('$')
+    await state.update_data(course=course, lesson=lesson)
+
+
+@dp.message_handler(state=States.STUDENT_HW_STATE, content_types=['photo', 'document', 'text'])
+async def catch_hw(msg: types.Message, state: FSMContext):
+    user_data = await state.get_data()
+    user_id = msg.from_user.id
+    user_name = msg.from_user.full_name
+    await bot.send_message(chat_id=GROUP,
+                           text=text(code(user_id), '. Домашнее задание от ' + user_name +
+                                     '. Курс ' + user_data['course'] + '. Занятие ' + user_data['lesson'], sep=''),
+                           parse_mode=ParseMode.MARKDOWN)
+    await msg.forward(chat_id=GROUP)
+    await state.finish()
+    await state.set_state(States.STUDENT_STATE[0])
+
+
+# Answer to callback query
+@dp.callback_query_handler(Text(startswith='presentation'), state=States.STUDENT_STATE)
+async def process_lesson_btn(callback_query: types.CallbackQuery):
+    await callback_query.answer()
