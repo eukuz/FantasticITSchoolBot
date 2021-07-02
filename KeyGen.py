@@ -1,33 +1,29 @@
 import string
 import secrets
-
+from db.app_db import *
 
 class KeyGen:
-    '''@staticmethod
+    _db = Database()
+
+    @staticmethod
     def __generateNKeys(n, tableName):
         symbols = string.digits + string.ascii_letters
         keys = set()
-        #conn = sqlite3.connect(connections["SQLite"])
-        cursor = conn.cursor()
+        field_name = tableName[:-1] + '_key' if tableName != 'homework' else 'hw_key'
         while len(keys) != n:
             key = "".join(secrets.choice(symbols) for i in range(13))
-            # cursor.execute("SELECT Key FROM " + tableName + " where Key = '" + key + "'")
-            if not cursor.fetchone():
+            print({field_name : key})
+            if KeyGen._db.get(tableName, **{field_name : key}) is None:
                 keys.add(key)
-        conn.close()
         return keys
 
-
+    @staticmethod
     def __writeKeysToDB(keys, tableName):
-        conn = sqlite3.connect(connections["SQLite"])
-        cursor = conn.cursor()
-        values = ""
+        field_name = tableName[:-1] + '_key' if tableName != 'homework' else 'hw_key'
         for key in keys:
-            values += "('" + key + "'),"
-        # cursor.execute("INSERT INTO " + tableName + " (Key) VALUES " + values[:-1])
-        conn.commit()
-        conn.close()
+            KeyGen._db.register(tableName, **{field_name : key})
 
+    @staticmethod
     def __getKeys(n, tableName):
         keys = KeyGen.__generateNKeys(n, tableName)
         KeyGen.__writeKeysToDB(keys, tableName)
@@ -37,28 +33,39 @@ class KeyGen:
             controlsKeys.add(control + key)
         return controlsKeys
 
+    @staticmethod
     def generateNKeysStudents(n):
-        return KeyGen.__getKeys(n, "Students")
-
+        return KeyGen.__getKeys(n, "students")
+    @staticmethod
     def generateNKeysTeachers(n):
-        return KeyGen.__getKeys(n, "Teachers")
+        return KeyGen.__getKeys(n, "teachers")
 
-    def generateNKeysCurators(n):
-        return KeyGen.__getKeys(n, "Curators")
+    @staticmethod
+    def generateNKeysTutors(n):
+        return KeyGen.__getKeys(n, "tutors")
 
+    @staticmethod
     def generateNKeysParents(n):
-        return KeyGen.__getKeys(n, "Parents")
+        return KeyGen.__getKeys(n, "parents")
 
+    @staticmethod
     def generateNKeysCourses(n):
-        return KeyGen.__getKeys(n, "Courses")
+        return KeyGen.__getKeys(n, "courses")
 
+    @staticmethod
     def generateNKeysGroups(n):
-        return KeyGen.__getKeys(n, "Groups")
+        return KeyGen.__getKeys(n, "groups")
 
+    @staticmethod
+    def generateNKeysHomework(n):
+        return KeyGen.__getKeys(n, "homework")
+
+    @staticmethod
     def generateNKeys(n, tableName):
         return KeyGen.__getKeys(n, tableName)
-         '''
-    pass
 
-
-# main()
+def main():
+    app_db = Database()
+    print(app_db.get_parent(student_key='osFaQGZIJfEzr11'))
+    app_db.set_student(app_db.get_student(UID='abcde'), parent=app_db.get_parent(parent_key='osFaQGZIJfEzr'))
+main()

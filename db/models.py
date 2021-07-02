@@ -1,6 +1,6 @@
 from peewee import *
 
-db = SqliteDatabase('ITSchoolBotDB', pragmas={
+db = SqliteDatabase('db/ITSchoolBotDB', pragmas={
     'ignore_check_constraints': 0
 })
 

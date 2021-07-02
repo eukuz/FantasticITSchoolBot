@@ -17,6 +17,7 @@ class Database:
         zero_teacher = Teachers.get_or_create(teacher_key='0', UID='0')
         zero_parent = Parents.get_or_create(parent_key='0', UID='0')
         zero_tutor = Tutors.get_or_create(tutor_key='0', UID='0')
+        zero_student = Students.get_or_create(student_key='0', UID='0', parent=zero_parent[0])
         zero_course = Courses.get_or_create(course_key='0')
         zero_group = Groups.get_or_create(group_key='0', teacher=zero_teacher[0], tutor=zero_tutor[0],
                                           course=zero_course[0])
@@ -31,7 +32,7 @@ class Database:
                 needed_fields[key] = value
         if 'UID' not in needed_fields.keys():
             needed_fields['UID'] = needed_fields['parent_key']
-        check = Groups.get_or_none(parent_key=needed_fields['parent_key'])
+        check = Parents.get_or_none(parent_key=needed_fields['parent_key'])
         if check is not None:
             return check
         new_parent = Parents.get_or_create(**needed_fields)
@@ -47,7 +48,7 @@ class Database:
                 needed_fields[key] = value
         if 'UID' not in needed_fields.keys():
             needed_fields['UID'] = needed_fields['student_key']
-        check = Groups.get_or_none(student_key=needed_fields['student_key'])
+        check = Students.get_or_none(student_key=needed_fields['student_key'])
         if check is not None:
             return check
         dummy_parent = Parents.get(parent_key=fields['parent']) if 'parent' in fields else Parents.get(parent_key='0')
@@ -64,7 +65,7 @@ class Database:
                 needed_fields[key] = value
         if 'UID' not in needed_fields.keys():
             needed_fields['UID'] = needed_fields['teacher_key']
-        check = Groups.get_or_none(teacher_key=needed_fields['teacher_key'])
+        check = Teachers.get_or_none(teacher_key=needed_fields['teacher_key'])
         if check is not None:
             return check
         new_teacher = Teachers.get_or_create(**needed_fields)
@@ -80,7 +81,7 @@ class Database:
                 needed_fields[key] = value
         if 'UID' not in needed_fields.keys():
             needed_fields['UID'] = needed_fields['tutor_key']
-        check = Groups.get_or_none(tutor_key=needed_fields['tutor_key'])
+        check = Tutors.get_or_none(tutor_key=needed_fields['tutor_key'])
         if check is not None:
             return check
         new_tutor = Tutors.get_or_create(**needed_fields)
@@ -94,7 +95,7 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        check = Groups.get_or_none(course_key=needed_fields['course_key'])
+        check = Courses.get_or_none(course_key=needed_fields['course_key'])
         if check is not None:
             return check
         new_course = Courses.get_or_create(**needed_fields)
@@ -108,7 +109,7 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 needed_fields[key] = value
-        check = Groups.get_or_none(hw_key=needed_fields['hw_key'])
+        check = Homework.get_or_none(hw_key=needed_fields['hw_key'])
         if check is not None:
             return check
         dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(teacher_key='0')
@@ -144,8 +145,10 @@ class Database:
             self.register_student(**fields)
         elif table_name == 'teachers':
             self.register_teacher(**fields)
-        elif table_name == 'tutor':
+        elif table_name == 'tutors':
             self.register_tutor(**fields)
+        elif table_name == 'courses':
+            self.register_course(**fields)
         else:
             raise KeyError
 
@@ -174,8 +177,13 @@ class Database:
                     student_fields['UID'] = value
                 else:
                     student_fields[key] = value
-        student = self.get_student(**student_fields) # Gets a student
-        parents = [i for i in Parents.select().where(student.parent == Parents.id).filter(**parent_fields)] # Selects a parent of a student and checks requirements
+        student = None if len(student_fields) == 0 else Students.get_or_none(**student_fields) # Gets a student
+        if student is not None:
+            print('checkone')
+            parents = [i for i in Parents.select().where(student.parent == Parents.id).filter(**parent_fields)] # Selects a parent of a student and checks requirements
+        else:
+            print('checktwo')
+            parents = [i for i in Parents.select().filter(**parent_fields)] # Selects a parent of a student and checks requirements
         # Expect single value if search by unique fields, list if search by non-unique fields
         return parents if len(parents) > 1 else parents[0] if len(parents) == 1 else None
 
@@ -203,8 +211,11 @@ class Database:
                     parent_fields['UID'] = value
                 else:
                     parent_fields[key] = value
-        parent = self.get_parent(**parent_fields)
-        students = [i for i in Students.select().where(Students.parent == parent).filter(**student_fields)]
+        parent = Parents.get_or_none(**parent_fields)
+        if parent is not None:
+            students = [i for i in Students.select().where(Students.parent == parent).filter(**student_fields)]
+        else:
+            students = [i for i in Students.select().filter(**student_fields)]
         # Expect single value if search by unique fields, list if by non-unique or by parent
         return students if len(students) > 1 else students[0] if len(students) == 1 else None
 
@@ -248,13 +259,13 @@ class Database:
 
     def get_course(self, **fields):
         """ Gets a list of courses (or a single one) by filters
-            Args:
-               **fields - kwargs filters (tutor fields, group unique fields)
+        Args:
+           **fields - kwargs filters (tutor fields, group unique fields)
 
-            Returns:
-               list of <Model: Courses> instances, if founds more than one
-               a single <Model: Courses> instance, if founds one
-               None, if founds nothing
+        Returns:
+           list of <Model: Courses> instances, if founds more than one
+           a single <Model: Courses> instance, if founds one
+           None, if founds nothing
         """
         existing_fields = [i.name for i in self._db.get_columns('courses')]
         course_fields = {}
@@ -267,7 +278,10 @@ class Database:
             if key in additional_fields:
                 group_fields[key] = value
         group = self.get_group(**group_fields)
-        courses = [i for i in Courses.select().where(Courses.id == group.course).filter(**course_fields)]
+        if group is not None:
+            courses = [i for i in Courses.select().where(Courses.id == group.course).filter(**course_fields)]
+        else:
+            courses = [i for i in Courses.select().filter(**course_fields)]
         # Expect single value if search by group or unique fields, list if by non-unique
         return courses if len(courses) > 1 else courses[0] if len(courses) == 1 else None
 
@@ -353,46 +367,66 @@ class Database:
             self.get_student(**fields)
         elif table_name == 'teachers':
             self.get_teacher(**fields)
-        elif table_name == 'tutor':
+        elif table_name == 'tutors':
             self.get_tutor(**fields)
+        elif table_name == 'courses':
+            self.get_course(**fields)
         else:
             raise KeyError
 
     def set_parent(self, entity, **fields):
         if type(entity) is not Parents:
             raise KeyError
-        existing_fields = [i.name for i in self._db.get_columns('parents')]
-        parent_fields = {}
+        attributes = {}
         for key, value in fields.items():
-            if key in existing_fields:
-                parent_fields[key] = value
-        for key, value in parent_fields:
+            if hasattr(entity, key):
+                attributes[key] = value
+        Parents.update(**attributes).where(Parents.parent_key == entity.parent_key).execute()
+
+    def set_student(self, entity, **fields):
+        if type(entity) is not Students:
+            raise KeyError
+        attributes = {}
+        for key, value in fields.items():
+            if hasattr(entity, key):
+                attributes[key] = value
+        Students.update(**attributes).where(Students.student_key == entity.student_key).execute()
+
+    def set_teacher(self, entity, **fields):
+        if type(entity) is not Teachers:
+            raise KeyError
+        for key, value in fields.items():
+            if hasattr(entity, key):
+                setattr(entity, key, value)
+
+    def set_tutor(self, entity, **fields):
+        if type(entity) is not Tutors:
+            raise KeyError
+        for key, value in fields.items():
             if hasattr(entity, key):
                 setattr(entity, key, value)
         return entity
 
-    def set_student(self, entity, **fields):
-        if type(entity) is not Parents:
+    def set_course(self, entity, **fields):
+        if type(entity) is not Courses:
             raise KeyError
-        existing_fields = [i.name for i in self._db.get_columns('students')]
-        student_fields = {}
         for key, value in fields.items():
-            if key in existing_fields:
-                student_fields[key] = value
-        for key, value in student_fields:
             if hasattr(entity, key):
                 setattr(entity, key, value)
         return entity
 
-    def set_student(self, entity, **fields):
-        if type(entity) is not Parents:
+    def set_homework(self, entity, **fields):
+        if type(entity) is not Homework:
             raise KeyError
-        existing_fields = [i.name for i in self._db.get_columns('parents')]
-        needed_fields = {}
         for key, value in fields.items():
-            if key in existing_fields:
-                needed_fields[key] = value
-        for key, value in needed_fields:
+            if hasattr(entity, key):
+                setattr(entity, key, value)
+        return entity
+
+    def set_group(self, entity, **fields):
+        if type(entity) is not Groups:
+            raise KeyError
+        for key, value in fields.items():
             if hasattr(entity, key):
                 setattr(entity, key, value)
         return entity
@@ -420,138 +454,21 @@ class Database:
             user_type = "Students"
         elif key == "TEA":
             user_type = "Teachers"
-        elif key == "CUR":
-            user_type = "Curators"
+        elif key == "TUT":
+            user_type = "Tutors"
         elif key == "PAR":
             user_type = "Parents"
         elif key == "COU":
             user_type = "Courses"
         elif key == "GRO":
             user_type = "Groups"
+        elif key == "HOM":
+            user_type = "Homework"
         return user_type
 
-        # Link student to parent by keys
 
     # Assigns student to group in StudentGroup
     def map_student_group(self, student_key, group_key):
-        StudentsGroups.get_or_create(students=self.get_entity_by_key(student_key, 'student'),
-                                     groups=self.get_entity_by_key(group_key, 'group'))
+        StudentsGroups.get_or_create(students=self.get_student(student_key=student_key),
+                                     groups=self.get_group(group_key=group_key))
 
-    # # Gets group key by student key, returns the first occurence
-    # def get_group_key_by_student_key(self, student_key):
-    #     # g = StudentsGroups.get(StudentsGroups.students.student_key == student_key)
-    #
-    #     for g in StudentsGroups:
-    #         if g.students.student_key == student_key:
-    #             return g.groups
-
-    def tie_parent(self, student_key, parent_key):
-        student = self.get_entity_by_key(student_key, 'student')
-        student.parent_id = self.get_entity_by_key(parent_key, 'parent')
-        student.save()
-
-    def get_students_from_parent(self, parent_key):
-        students = []
-        for s in Students:
-            if s.parent.parent_key == parent_key:
-                students.append(s)
-        return students
-
-    def get_parent_key_from_student(self, student_key):
-        for s in Students:
-            if s.student_key == student_key:
-                return s.parent_key
-
-    def get_groups_by_student_key(self, student_key):
-        groups = []
-        query = Groups.select().join(StudentsGroups).join(Students).where(Students.student_key == student_key)
-        '''for sg in StudentsGroups:
-            if sg.students.student_key == student_key:
-                groups.append(sg.groups)'''
-        for i in query:
-            print(i.group_key)
-        return groups
-
-    def get_groups_of_children_from_parent_key(self, parent_key):
-        result = []
-        children = self.get_students_from_parent(parent_key)
-        for c in children:
-            result.append(self.get_groups_by_student_key(c.student_key))
-        return result
-
-    def get_homeworks_from_group(self, group_key):
-        # TODO homeworks and groups are not tied yet
-        pass
-
-    def handle_doesnt_exist_error(self):
-        return []
-
-    def get_entity_by_key(self, key, entity_type):
-        if entity_type == 'parent':
-            try:
-                p = Parents.get(Parents.parent_key == key)
-                return p
-            except DoesNotExist:
-                return self.handle_doesnt_exist_error()
-        elif entity_type == 'student':
-            try:
-                p = Students.get(Students.student_key == key)
-                return p
-            except DoesNotExist:
-                return self.handle_doesnt_exist_error()
-        elif entity_type == 'teacher':
-            try:
-                p = Teachers.get(Teachers.teacher_key == key)
-                return p
-            except DoesNotExist:
-                return self.handle_doesnt_exist_error()
-        elif entity_type == 'tutor':
-            try:
-                p = Tutors.get(Tutors.tutor_key == key)
-                return p
-            except DoesNotExist:
-                return self.handle_doesnt_exist_error()
-        elif entity_type == 'homework':
-            try:
-                p = Homework.get(Homework.hw_key == key)
-                return p
-            except DoesNotExist:
-                return self.handle_doesnt_exist_error()
-        elif entity_type == 'group':
-            try:
-                p = Groups.get(Groups.group_key == key)
-                return p
-            except DoesNotExist:
-                return self.handle_doesnt_exist_error()
-        else:
-            return self.handle_doesnt_exist_error()
-
-
-def test(app_db):
-    app_db.register_parent(parent_key='p1')
-    app_db.register_parent(parent_key='p2')
-    app_db.register_parent(parent_key='p3')
-    app_db.register_parent(parent_key='p4')
-
-    app_db.register_student(student_key='s1', UID='a')
-    app_db.register_student(student_key='s2', UID='b')
-    app_db.register_student(student_key='s3')
-    s4 = app_db.register_student(student_key='s4')
-
-    app_db.register_teacher(teacher_key='teacher1', UID='c')
-    app_db.register_tutor(tutor_key='tutor1', UID='d')
-    app_db.register_course(course_key='course1')
-
-    app_db.register_group(group_key='g1', course='course1', teacher='teacher1', tutor='tutor1')
-    app_db.map_student_group('s1', 'g1')
-    app_db.map_student_group('s2', 'g1')
-    st = app_db.get_student(parent_key='p1')[0]
-    print(st.student_key)
-    print(app_db.get_group(student_UID='a', teacher_UID='c', tutor_UID='d'))
-
-def main():
-    app_db = Database()
-    test(app_db)
-
-
-main()
