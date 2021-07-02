@@ -8,6 +8,7 @@ class States(Helper):
 
     STUDENT_STATE = ListItem()
     STUDENT_KEY_STATE = ListItem()
+    STUDENT_HW_STATE = ListItem()
 
     QUESTION_STATE = ListItem()
     SICK_STATE = ListItem()
