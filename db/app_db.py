@@ -179,10 +179,8 @@ class Database:
                     student_fields[key] = value
         student = None if len(student_fields) == 0 else Students.get_or_none(**student_fields) # Gets a student
         if student is not None:
-            print('checkone')
             parents = [i for i in Parents.select().where(student.parent == Parents.id).filter(**parent_fields)] # Selects a parent of a student and checks requirements
         else:
-            print('checktwo')
             parents = [i for i in Parents.select().filter(**parent_fields)] # Selects a parent of a student and checks requirements
         # Expect single value if search by unique fields, list if search by non-unique fields
         return parents if len(parents) > 1 else parents[0] if len(parents) == 1 else None
@@ -211,7 +209,7 @@ class Database:
                     parent_fields['UID'] = value
                 else:
                     parent_fields[key] = value
-        parent = Parents.get_or_none(**parent_fields)
+        parent = None if len(parent_fields) == 0 else Parents.get_or_none(**parent_fields)
         if parent is not None:
             students = [i for i in Students.select().where(Students.parent == parent).filter(**student_fields)]
         else:
@@ -277,7 +275,7 @@ class Database:
         for key, value in fields.items():
             if key in additional_fields:
                 group_fields[key] = value
-        group = self.get_group(**group_fields)
+        group = None if len(group_fields) == 0 else self.get_group(**group_fields)
         if group is not None:
             courses = [i for i in Courses.select().where(Courses.id == group.course).filter(**course_fields)]
         else:
@@ -308,8 +306,8 @@ class Database:
                     group_teacher_fields['UID'] = value
                 else:
                     group_teacher_fields[key] = value
-        group = self.get_group(**group_teacher_fields)
-        teacher = self.get_teacher(**group_teacher_fields)
+        group = None if len(group_teacher_fields) == 0 else self.get_group(**group_teacher_fields)
+        teacher = None if len(group_teacher_fields) == 0 else self.get_teacher(**group_teacher_fields)
         query = Homework.select()
         if group is not None:
             query.where(Homework.group == group)
@@ -340,8 +338,8 @@ class Database:
             if key in additional_fields:
                 other_fields[key] = value
         student = self.get_student(UID=other_fields['student_UID']) if 'student_UID' in other_fields.keys() else None
-        teacher = self.get_student(UID=other_fields['teacher_UID']) if 'teacher_UID' in other_fields.keys() else None
-        tutor = self.get_student(UID=other_fields['tutor_UID']) if 'tutor_UID' in other_fields.keys() else None
+        teacher = self.get_teacher(UID=other_fields['teacher_UID']) if 'teacher_UID' in other_fields.keys() else None
+        tutor = self.get_tutor(UID=other_fields['tutor_UID']) if 'tutor_UID' in other_fields.keys() else None
         query = Groups.select().join(StudentsGroups).join(Students)
         if student is not None:
             query.where(Students.UID == student.UID)
@@ -395,41 +393,47 @@ class Database:
     def set_teacher(self, entity, **fields):
         if type(entity) is not Teachers:
             raise KeyError
+        attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
-                setattr(entity, key, value)
+                attributes[key] = value
+        Teachers.update(**attributes).where(Teachers.teacher_key == entity.teacher_key).execute()
 
     def set_tutor(self, entity, **fields):
         if type(entity) is not Tutors:
             raise KeyError
+        attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
-                setattr(entity, key, value)
-        return entity
+                attributes[key] = value
+        Tutors.update(**attributes).where(Tutors.tutor_key == entity.tutor_key).execute()
 
     def set_course(self, entity, **fields):
         if type(entity) is not Courses:
             raise KeyError
+        attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
-                setattr(entity, key, value)
-        return entity
+                attributes[key] = value
+        Courses.update(**attributes).where(Courses.course_key == entity.course_key).execute()
 
     def set_homework(self, entity, **fields):
         if type(entity) is not Homework:
             raise KeyError
+        attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
-                setattr(entity, key, value)
-        return entity
+                attributes[key] = value
+        Homework.update(**attributes).where(Homework.hw_key == entity.hw_key).execute()
 
     def set_group(self, entity, **fields):
         if type(entity) is not Groups:
             raise KeyError
+        attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
-                setattr(entity, key, value)
-        return entity
+                attributes[key] = value
+        Groups.update(**attributes).where(Groups.group_key == entity.group_key).execute()
 
     def set(self, table_name, entity, **fields):
         if table_name == 'groups':
