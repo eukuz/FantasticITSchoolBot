@@ -1,6 +1,6 @@
 from peewee import *
 
-db = SqliteDatabase('ITSchoolBotDB', pragmas={
+db = SqliteDatabase('db/ITSchoolBotDB', pragmas={
     'ignore_check_constraints': 0
 })
 
@@ -12,36 +12,46 @@ class BaseModel(Model):
 
 class Teachers(BaseModel):
     teacher_key = CharField(unique=True)
-    UID = CharField(default='')
-    contact_info = TextField(default='')
+    UID = CharField(unique=True)
+    full_name = CharField(default='')
+    alias = CharField(default='')
+    phone_number = CharField(default='')
 
 
 class Parents(BaseModel):
     parent_key = CharField(unique=True)
-    UID = CharField(default='')
-    contact_info = TextField(default='')
+    UID = CharField(unique=True)
+    full_name = CharField(default='')
+    alias = CharField(default='')
+    phone_number = CharField(default='')
 
 
 class Tutors(BaseModel):
     tutor_key = CharField(unique=True)
-    UID = CharField(default='')
-    contact_info = TextField(default='')
+    UID = CharField(unique=True)
+    full_name = CharField(default='')
+    alias = CharField(default='')
+    phone_number = CharField(default='')
 
 
 class Students(BaseModel):
     student_key = CharField(unique=True)
-    UID = CharField(default='')
-    contact_info = TextField(default='')
+    UID = CharField(unique=True)
+    full_name = CharField(default='')
+    alias = CharField(default='')
+    phone_number = CharField(default='')
     parent = ForeignKeyField(Parents, backref='students')
 
 
 class Courses(BaseModel):
     course_key = CharField(unique=True)
-    course_info = TextField(default='')
+    name = CharField(default='')
+    info = TextField(default='')
 
 
 class Groups(BaseModel):
     group_key = CharField(unique=True)
+    name = CharField(default='')
     course = ForeignKeyField(Courses, backref='groups')
     teacher = ForeignKeyField(Teachers, backref='groups')
     tutor = ForeignKeyField(Tutors, backref='groups')
@@ -49,6 +59,7 @@ class Groups(BaseModel):
 
 class Homework(BaseModel):
     hw_key = CharField(unique=True)
+    subject = CharField(default='')
     date = DateField(default='')
     description = TextField(default='')
     attached = BlobField(default='')
@@ -56,7 +67,7 @@ class Homework(BaseModel):
     group = ForeignKeyField(Groups, backref='homework')
 
 
-# Perhaps rename to something like StudentGroupMap?
+# Perhaps rename to something like StudentGroupMap? Too long
 class StudentsGroups(BaseModel):
-    students = ForeignKeyField(Students)
-    groups = ForeignKeyField(Groups)
+    student = ForeignKeyField(Students)
+    group = ForeignKeyField(Groups)
