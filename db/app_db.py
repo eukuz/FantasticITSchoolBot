@@ -370,11 +370,11 @@ class Database:
         elif table_name == 'courses':
             self.get_course(**fields)
         else:
-            raise KeyError
+            raise KeyError('No such table')
 
     def set_parent(self, entity, **fields):
         if type(entity) is not Parents:
-            raise KeyError
+            raise KeyError('Given entity is not <Model: Parents>, please re-check your query')
         attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
@@ -383,7 +383,7 @@ class Database:
 
     def set_student(self, entity, **fields):
         if type(entity) is not Students:
-            raise KeyError
+            raise KeyError('Given entity is not <Model: Students>, please re-check your query')
         attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
@@ -392,7 +392,7 @@ class Database:
 
     def set_teacher(self, entity, **fields):
         if type(entity) is not Teachers:
-            raise KeyError
+            raise KeyError('Given entity is not <Model: Teachers>, please re-check your query')
         attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
@@ -401,7 +401,7 @@ class Database:
 
     def set_tutor(self, entity, **fields):
         if type(entity) is not Tutors:
-            raise KeyError
+            raise KeyError('Given entity is not <Model: Tutors>, please re-check your query')
         attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
@@ -410,7 +410,7 @@ class Database:
 
     def set_course(self, entity, **fields):
         if type(entity) is not Courses:
-            raise KeyError
+            raise KeyError('Given entity is not <Model: Courses>, please re-check your query')
         attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
@@ -419,7 +419,7 @@ class Database:
 
     def set_homework(self, entity, **fields):
         if type(entity) is not Homework:
-            raise KeyError
+            raise KeyError('Given entity is not <Model: Homework>, please re-check your query')
         attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
@@ -428,7 +428,7 @@ class Database:
 
     def set_group(self, entity, **fields):
         if type(entity) is not Groups:
-            raise KeyError
+            raise KeyError('Given entity is not <Model: Groups>, please re-check your query')
         attributes = {}
         for key, value in fields.items():
             if hasattr(entity, key):
@@ -449,7 +449,7 @@ class Database:
         elif table_name == 'tutor':
             self.set_tutor(**fields)
         else:
-            raise KeyError
+            raise KeyError('No such table')
 
     def get_user_type_from_key(self, key):
         user_type = ''

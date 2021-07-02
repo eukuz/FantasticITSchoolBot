@@ -64,8 +64,8 @@ class KeyGen:
     def generateNKeys(n, tableName):
         return KeyGen.__getKeys(n, tableName)
 
-def main():
+"""def main():
     app_db = Database()
     print(app_db.get_parent(student_key='osFaQGZIJfEzr11'))
     app_db.set_student(app_db.get_student(UID='abcde'), parent=app_db.get_parent(parent_key='osFaQGZIJfEzr'))
-main()
+main()"""
