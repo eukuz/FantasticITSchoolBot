@@ -1,6 +1,6 @@
 # First, import the DB class
 # It's located in "app_db.py" and called "Database"
-from FantasticITSchoolBot.db.app_db import Database
+from db.app_db import Database
 
 # initialize the DB
 app_db = Database()

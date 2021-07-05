@@ -66,6 +66,9 @@ class KeyGen:
 
 def main():
     app_db = Database()
-    print(app_db.get_parent(student_key='osFaQGZIJfEzr11'))
-    app_db.set_student(app_db.get_student(UID='abcde'), parent=app_db.get_parent(parent_key='osFaQGZIJfEzr'))
-# main()
+    app_db.map_student_group('Nk3gD9jziJHjR', 'wBFcxRDmUFol0')
+    app_db.map_student_group('rQoITHLQYcLh5', 'wBFcxRDmUFol0')
+    app_db.map_student_group('XHXetJGPKSTSQ', 'wBFcxRDmUFol0')
+    app_db.map_student_group('fQm1MY1pavKZv', 'wBFcxRDmUFol0')
+    print(app_db.get_student(group_key='wBFcxRDmUFol0'))
+main()
