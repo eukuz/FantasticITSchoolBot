@@ -5,8 +5,7 @@ from .parent import parent_main_kb
 from handlers.tutor.tutor_main import tutor_main_kb
 from handlers.tutor.tutor_publish import *
 from .teacher import teacher_main_kb
-from loader import dp, bot
-from db.app_db import Database
+from loader import dp, bot, db
 from .student import *
 from .tutor import *
 
@@ -26,7 +25,6 @@ async def process_start_command(message: types.Message):
 async def authorization(msg: types.Message):
     text_ = msg.text                                  # take user's message
     state = dp.current_state(user=msg.from_user.id)   # take current state
-    db = Database()
     if text_[:3] == 'STU':
         student = db.get_student(student_key=text_[3:])
         if student is not None:
