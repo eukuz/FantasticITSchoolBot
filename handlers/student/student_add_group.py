@@ -27,13 +27,10 @@ async def process_student_key(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)     # take current state of user
     await state.set_state(States.STUDENT_STATE[0])      # change user's state
     text_ = msg.text
-    # group = db.get_group(group_key=text_)
-    # if group is not None:
-    #     db.set_group(tutor, UID=msg.from_user.id, alias=msg.from_user.username)
-    check = True
-    if not check:
+    group = db.get_group(group_key=text_[3:])
+    if group is None or text_[:3] != 'GRO':
         await msg.answer('Такого ключа не существует.')
-    elif text_[:3] == 'GRO':
-        await msg.answer('Поздравляем вы успешно добавили себе курс ' + text_ + '.')
     else:
-        await msg.answer('Ошибка. Пожалуйста обратитесь к администрации.')
+        await msg.answer('Поздравляем вы успешно добавили себе курс ' + text_ + '.')
+        student = db.get_student(UID=msg.from_user.id)
+        db.map_student_group(student.key, text_)

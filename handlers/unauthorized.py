@@ -6,7 +6,7 @@ from handlers.tutor.tutor_main import tutor_main_kb
 from handlers.tutor.tutor_publish import *
 from .teacher import teacher_main_kb
 from loader import dp, bot
-from db.app_db import db
+from db.app_db import Database
 from .student import *
 from .tutor import *
 
@@ -25,9 +25,10 @@ async def process_start_command(message: types.Message):
 @dp.message_handler(state=States.UNAUTHORIZED_STATE)
 async def authorization(msg: types.Message):
     text_ = msg.text                                  # take user's message
-    state = dp.current_state(user=msg.from_user.id)  # take current state
+    state = dp.current_state(user=msg.from_user.id)   # take current state
+    db = Database()
     if text_[:3] == 'STU':
-        student = db.get_student(student_key=text_)
+        student = db.get_student(student_key=text_[3:])
         if student is not None:
             db.set_student(student, UID=msg.from_user.id, alias=msg.from_user.username)
             await state.set_state(States.STUDENT_STATE[0])  # change user's state to STUDENT
@@ -41,7 +42,7 @@ async def authorization(msg: types.Message):
         else:
             await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     elif text_[:3] == 'PAR':
-        parent = db.get_parent(parent_key=text_)
+        parent = db.get_parent(parent_key=text_[3:])
         if parent is not None:
             db.set_parent(parent, UID=msg.from_user.id, alias=msg.from_user.username)
             await state.set_state(States.PARENT_STATE[0])   # change user's state to PARENT
@@ -51,7 +52,7 @@ async def authorization(msg: types.Message):
         else:
             await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     elif text_[:3] == 'CUR':
-        tutor = db.get_tutor(tutor_key=text_)
+        tutor = db.get_tutor(tutor_key=text_[3:])
         if tutor is not None:
             db.set_tutor(tutor, UID=msg.from_user.id, alias=msg.from_user.username)
             await state.set_state(States.TUTOR_STATE[0])  # change user's state to TUTOR
@@ -60,7 +61,7 @@ async def authorization(msg: types.Message):
         else:
             await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     elif text_[:3] == 'TEA':
-        teacher = db.get_teacher(teacher_key=text_)
+        teacher = db.get_teacher(teacher_key=text_[3:])
         if teacher is not None:
             db.set_teacher(teacher, UID=msg.from_user.id, alias=msg.from_user.username)
             await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
