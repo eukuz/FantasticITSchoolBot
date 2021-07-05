@@ -77,9 +77,10 @@ async def catch_hw(msg: types.Message, state: FSMContext):
     user_data = await state.get_data()
     user_id = msg.from_user.id
     user_name = msg.from_user.full_name
+    alias = msg.from_user.username
     await bot.send_message(chat_id=GROUP,
-                           text=text(code(user_id), '. Домашнее задание от ' + user_name +
-                                     '. Курс ' + user_data['course'] + '. Занятие ' + user_data['lesson'], sep=''),
+                           text=text(code(user_id), '. Домашнее задание от ', user_name, '(', alias, ')',
+                                     '. Курс ', user_data['course'], '. Занятие ', user_data['lesson'], sep=''),
                            parse_mode=ParseMode.MARKDOWN)
     await msg.forward(chat_id=GROUP)
     await state.finish()

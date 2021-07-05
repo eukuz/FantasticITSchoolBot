@@ -66,8 +66,9 @@ async def process_student_question(msg: types.Message, state: FSMContext):
     # Forward message to the admins' chat
     user_id = msg.from_user.id
     user_name = msg.from_user.full_name
+    alias = msg.from_user.username
     await bot.send_message(chat_id=GROUP,
-                           text=text(code(user_id), '.', 'Вопрос от ' + user_name + '.', sep=''),
+                           text=text(code(user_id), '.', 'Вопрос от ', user_name, '(', alias, ').', sep=''),
                            parse_mode=ParseMode.MARKDOWN)
     await msg.forward(chat_id=GROUP)
 
@@ -102,8 +103,9 @@ async def process_sick_evidence(msg: types.Message, state: FSMContext):
     # Forward message to admins chat
     user_id = msg.from_user.id
     user_name = msg.from_user.full_name
+    alias = msg.from_user.username
     await bot.send_message(chat_id=GROUP,
-                           text=text(code(user_id), '.', 'Справка от ' + user_name + '.', sep=''),
+                           text=text(code(user_id), '.', 'Справка от ', user_name, '(', alias, ').', sep=''),
                            parse_mode=ParseMode.MARKDOWN)
     await msg.forward(chat_id=GROUP)
     # Change state
@@ -119,9 +121,10 @@ async def process_sick_evidence(msg: types.Message, state: FSMContext):
 async def process_feedback_btn(callback_query: types.CallbackQuery):
     user_name = callback_query.from_user.full_name
     user_id = callback_query.from_user.id
+    alias = callback_query.from_user.username
     await callback_query.answer('Запрос отправлен. Ожидайте ответа')
     await bot.send_message(chat_id=GROUP,
-                           text=text(code(user_id), '.', 'Требуется фидбек для ' + user_name + '.', sep=''),
+                           text=text(code(user_id), '.', 'Требуется фидбек для ', user_name, '(', alias, ').', sep=''),
                            parse_mode=ParseMode.MARKDOWN)
 
 

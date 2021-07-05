@@ -11,7 +11,7 @@ from aiogram.dispatcher.filters import Text
 from KeyGen import KeyGen
 from config import GROUP
 from aiogram.dispatcher import FSMContext
-
+from db.app_db import db
 
 # Add new course button
 @dp.message_handler(state=States.STUDENT_STATE, text='Добавить курс')
@@ -27,7 +27,9 @@ async def process_student_key(msg: types.Message):
     state = dp.current_state(user=msg.from_user.id)     # take current state of user
     await state.set_state(States.STUDENT_STATE[0])      # change user's state
     text_ = msg.text
-    # TODO: check that key is correct
+    # group = db.get_group(group_key=text_)
+    # if group is not None:
+    #     db.set_group(tutor, UID=msg.from_user.id, alias=msg.from_user.username)
     check = True
     if not check:
         await msg.answer('Такого ключа не существует.')
