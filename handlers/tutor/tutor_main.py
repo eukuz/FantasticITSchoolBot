@@ -12,13 +12,13 @@ from aiogram.dispatcher.filters import Text
 generate_keys_btn = KeyboardButton('Сгенерировать ключи')
 create_btn = KeyboardButton('Создать')
 publish_post_btn = KeyboardButton('Опубликовать пост')
-update_schedule_btn = KeyboardButton('Обновить расписание')
+# update_schedule_btn = KeyboardButton('Обновить расписание')
 exit_btn = KeyboardButton('Выйти')
 
 tutor_main_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(generate_keys_btn,
                                                               create_btn,
                                                               publish_post_btn,
-                                                              update_schedule_btn,
+                                                              # update_schedule_btn,
                                                               exit_btn)
 
 
