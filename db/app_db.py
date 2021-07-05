@@ -1,8 +1,6 @@
-from peewee import Expression
+from FantasticITSchoolBot.db.models import *
 
-from db.models import *
-
-debug_console_messages = True
+debug_console_messages = False
 
 
 class Database:
@@ -112,7 +110,8 @@ class Database:
         check = Homework.get_or_none(hw_key=needed_fields['hw_key'])
         if check is not None:
             return check
-        dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(teacher_key='0')
+        dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(
+            teacher_key='0')
         dummy_group = Groups.get(group_key=fields['group']) if 'group' in fields else Groups.get(group_key='0')
         new_hw = Homework.get_or_create(teacher=dummy_teacher, group=dummy_group, **needed_fields)
         return new_hw
@@ -128,7 +127,8 @@ class Database:
         check = Groups.get_or_none(group_key=needed_fields['group_key'])
         if check is not None:
             return check
-        dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(teacher_key='0')
+        dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(
+            teacher_key='0')
         dummy_tutor = Tutors.get(tutor_key=fields['tutor']) if 'tutor' in fields else Tutors.get(tutor_key='0')
         dummy_course = Courses.get(course_key=fields['course']) if 'course' in fields else Courses.get(course_key='0')
         new_group = Groups.get_or_create(teacher=dummy_teacher, tutor=dummy_tutor, course=dummy_course, **needed_fields)
@@ -164,24 +164,26 @@ class Database:
             None, if founds nothing
 
         """
-        existing_fields = [i.name for i in self._db.get_columns('parents')] # Gets all columns of the table
+        existing_fields = [i.name for i in self._db.get_columns('parents')]  # Gets all columns of the table
         parent_fields = {}
-        for key, value in fields.items(): # Filters incorrect args
+        for key, value in fields.items():  # Filters incorrect args
             if key in existing_fields:
                 parent_fields[key] = value
-        additional_fields = ['student_UID', 'student_key'] # Additional fields that could be passed in args
+        additional_fields = ['student_UID', 'student_key']  # Additional fields that could be passed in args
         student_fields = {}
-        for key, value in fields.items(): # Filters student fields from args
+        for key, value in fields.items():  # Filters student fields from args
             if key in additional_fields:
                 if key == 'student_UID':
                     student_fields['UID'] = value
                 else:
                     student_fields[key] = value
-        student = None if len(student_fields) == 0 else Students.get_or_none(**student_fields) # Gets a student
+        student = None if len(student_fields) == 0 else Students.get_or_none(**student_fields)  # Gets a student
         if student is not None:
-            parents = [i for i in Parents.select().where(student.parent == Parents.id).filter(**parent_fields)] # Selects a parent of a student and checks requirements
+            parents = [i for i in Parents.select().where(student.parent == Parents.id).filter(
+                **parent_fields)]  # Selects a parent of a student and checks requirements
         else:
-            parents = [i for i in Parents.select().filter(**parent_fields)] # Selects a parent of a student and checks requirements
+            parents = [i for i in Parents.select().filter(
+                **parent_fields)]  # Selects a parent of a student and checks requirements
         # Expect single value if search by unique fields, list if search by non-unique fields
         return parents if len(parents) > 1 else parents[0] if len(parents) == 1 else None
 
@@ -201,7 +203,7 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 student_fields[key] = value
-        additional_fields = ['parent_UID', 'parent_key'] # Additional fields that could be passed in args
+        additional_fields = ['parent_UID', 'parent_key']  # Additional fields that could be passed in args
         parent_fields = {}
         for key, value in fields.items():
             if key in additional_fields:
@@ -270,7 +272,7 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 course_fields[key] = value
-        additional_fields = ['group_key'] # Additional fields that could be passed in args
+        additional_fields = ['group_key']  # Additional fields that could be passed in args
         group_fields = {}
         for key, value in fields.items():
             if key in additional_fields:
@@ -298,7 +300,8 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 hw_fields[key] = value
-        additional_fields = ['group_key', 'teacher_key', 'teacher_UID'] # Additional fields that could be passed in args
+        additional_fields = ['group_key', 'teacher_key',
+                             'teacher_UID']  # Additional fields that could be passed in args
         group_teacher_fields = {}
         for key, value in fields.items():
             if key in additional_fields:
@@ -332,8 +335,10 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 group_fields[key] = value
-        print(group_fields)
-        additional_fields = ['student_UID', 'tutor_UID', 'teacher_UID'] # Additional fields that could be passed in args
+        if debug_console_messages:
+            print(f'group_fields: {group_fields}')
+        additional_fields = ['student_UID', 'tutor_UID',
+                             'teacher_UID']  # Additional fields that could be passed in args
         other_fields = {}
         for key, value in fields.items():
             if key in additional_fields:
@@ -342,13 +347,14 @@ class Database:
         teacher = self.get_teacher(UID=other_fields['teacher_UID']) if 'teacher_UID' in other_fields.keys() else None
         tutor = self.get_tutor(UID=other_fields['tutor_UID']) if 'tutor_UID' in other_fields.keys() else None
         query = Groups.select().filter(**group_fields)
-        print(query)
+        if debug_console_messages:
+            print(f'query: {query}')
         if student is not None:
-            query.join(StudentsGroups).join(Students).where(Students.UID == student.UID)
+            query = query.join(StudentsGroups).join(Students).where(Students.UID == student.UID)
         if teacher is not None:
-            query.where(Groups.teacher == teacher)
+            query = query.where(Groups.teacher == teacher)
         if tutor is not None:
-            query.where(Groups.tutor == tutor)
+            query = query.where(Groups.tutor == tutor)
         groups = [i for i in query]
         # Expect a single value if search by unique fields, list if by student, teacher, tutor UIDs or by non-unique
         return groups if len(groups) > 1 else groups[0] if len(groups) == 1 else None
@@ -472,9 +478,7 @@ class Database:
             user_type = "Homework"
         return user_type
 
-
     # Assigns student to group in StudentGroup
     def map_student_group(self, student_key, group_key):
-        StudentsGroups.get_or_create(students=self.get_student(student_key=student_key),
-                                     groups=self.get_group(group_key=group_key))
-
+        StudentsGroups.get_or_create(student=self.get_student(student_key=student_key),
+                                     group=self.get_group(group_key=group_key))

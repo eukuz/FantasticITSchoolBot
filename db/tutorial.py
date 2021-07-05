@@ -29,6 +29,7 @@ def demo():
 
     app_db.register_group(group_key='g1', course='course1', teacher='teacher1', tutor='tutor1')
     app_db.register_group(group_key='g2', course='course2', teacher='teacher2', tutor='tutor2')
+    app_db.register_group(group_key='g3', course='course2', teacher='teacher2', tutor='tutor2')
 
     p1 = app_db.get_parent(parent_key='p1').parent_key
 
@@ -40,8 +41,6 @@ def demo():
 
     model_methods()
     common_methods()
-
-    print(app_db.get_group(student_UID='b'))
 
 
 # ==============================[WORKING WITH MODELS]==============================
@@ -108,8 +107,17 @@ def common_methods():
     app_db.map_student_group('s2', 'g2')
     app_db.map_student_group('s3', 'g2')
 
+    app_db.map_student_group('s2', 'g3')
+
     # Listing all groups of student by his UID
-    app_db.get_group(student_UID='b')
+    # Note that in first case, student with UID "b" has 3 groups,
+    # while one with UID "a" only has one. So first call would return
+    # a list, while
+    print(app_db.get_group(student_UID='b'))
+    # this call would only return the instance of the only group of student
+    print(app_db.get_group(student_UID='a'))
+
+    # Currently finding groups is available only through UID
 
 
 # ==============================[REGISTRATION/CREATION OF USERS]==============================
