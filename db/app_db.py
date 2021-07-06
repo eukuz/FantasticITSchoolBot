@@ -313,12 +313,12 @@ class Database:
                     group_teacher_fields[key] = value
         group = None if len(group_teacher_fields) == 0 else self.get_group(**group_teacher_fields)
         teacher = None if len(group_teacher_fields) == 0 else self.get_teacher(**group_teacher_fields)
-        query = Homework.select()
+        query = Homework.select().filter(**hw_fields)
         if group is not None:
-            query.where(Homework.group == group)
+            query = query.where(Homework.group == group)
         if teacher is not None:
-            query.where(Homework.teacher == teacher)
-        hws = [i for i in query.filter(**hw_fields)]
+            query = query.where(Homework.teacher == teacher)
+        hws = [i for i in query]
         # Expect a single value if search by unique fields, list if by non-unique, by group or by teacher
         return hws if len(hws) > 1 else hws[0] if len(hws) == 1 else None
 

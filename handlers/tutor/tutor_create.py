@@ -14,11 +14,12 @@ from KeyGen import KeyGen
 async def process_create_btn(msg: types.Message):
     course_btn = InlineKeyboardButton('Курс', callback_data='create course')
     group_btn = InlineKeyboardButton('Группа', callback_data='create group')
-    create_kb = InlineKeyboardMarkup().insert(course_btn).insert(group_btn)
+    back_btn = InlineKeyboardButton('Назад', callback_data='back')
+    create_kb = InlineKeyboardMarkup().insert(course_btn).insert(group_btn).insert(back_btn)
     await msg.answer(text='Что будем создавать?', reply_markup=create_kb)
 
 
-@dp.callback_query_handler(Text(startswith='create'), state=States.TUTOR_STATE)
+@dp.callback_query_handler(Text(startswith='create'), state=States.TUTOR_STATE | States.CREATE_GROUP_STATE | States.CREATE_COURSE_STATE)
 async def process_create_course_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     user_id = callback_query.from_user.id
@@ -29,6 +30,15 @@ async def process_create_course_btn(callback_query: types.CallbackQuery):
         await state.set_state(States.CREATE_COURSE_STATE[0])
     elif callback_data.find('group') != -1:
         await state.set_state(States.CREATE_GROUP_STATE[0])
+
+
+@dp.callback_query_handler(state=States.TUTOR_STATE | States.CREATE_GROUP_STATE | States.CREATE_COURSE_STATE, text='back')
+async def process_back_btn(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
+    state = dp.current_state(user=callback_query.from_user.id)
+    await state.set_state(States.TUTOR_STATE[0])
+    # print(await state.get_state())
 
 
 @dp.message_handler(state=States.CREATE_GROUP_STATE | States.CREATE_COURSE_STATE)
@@ -80,7 +90,7 @@ async def process_course_btn(callback_query: types.CallbackQuery):
     key_group = KeyGen.generateNKeysGroups(1).pop()
     course_name = db.get_course(course_key=course).name
     group = db.get_group(group_key=key_group[3:])
-    db.set_group(group, name=group_name)
+    db.set_group(group, name=group_name, course=db.get_course(course_key=course))
     await bot.edit_message_text(text('Группа', group_name, 'для курса', course_name, 'успешно создана.\nКлюч:', code(key_group)),
                                 user_id, message_id,
                                 parse_mode=ParseMode.MARKDOWN)

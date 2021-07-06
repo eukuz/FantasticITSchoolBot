@@ -8,3 +8,8 @@ bot = Bot(token=config.TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 db = Database()
 dp.middleware.setup(LoggingMiddleware())
+
+
+async def publish_msg(students, msg: types.Message):
+    for student in students:
+        await msg.send_copy(student.UID)

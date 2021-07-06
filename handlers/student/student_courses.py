@@ -45,12 +45,11 @@ async def process_one_course_btn(callback_query: types.CallbackQuery):
     course = callback_query.data.split()[1]
     lessons = db.get_homework(group_key=course)
     lessons_kb = InlineKeyboardMarkup()
-    # print(lessons)
     if lessons is not None:
         if type(lessons) is not list:
             lessons = [lessons]
         for i in range(len(lessons)):
-            lesson_btn = InlineKeyboardButton('1', callback_data='presentation')  # send presentation for this lesson
+            lesson_btn = InlineKeyboardButton(str(i + 1), callback_data='presentation')  # send presentation for this lesson
             get_hw_btn = InlineKeyboardButton('Получить домашнее задание', callback_data='gethw ' + course + ' ' + lessons[i].hw_key)     # get homework
             send_hw_btn = InlineKeyboardButton('Отправить домашнее задание', callback_data='sendhw ' + course + ' ' + lessons[i].hw_key)  # send homework
             lessons_kb.row(lesson_btn, get_hw_btn, send_hw_btn)
@@ -91,9 +90,9 @@ async def catch_hw(msg: types.Message, state: FSMContext):
     user_name = msg.from_user.full_name
     alias = msg.from_user.username
     course = db.get_group(group_key=user_data['course']).name
-    lesson = db.get_homework(hw_key=user_data['lesson']).name
+    lesson = db.get_homework(hw_key=user_data['lesson']).id
     await bot.send_message(chat_id=GROUP,
-                           text=text(code(user_id), '. Домашнее задание от ', user_name, '(', alias, ')',
+                           text=text(code(user_id), '. Домашнее задание от ', user_name, ' (@', alias, ')',
                                      '. Курс ', course, '. Занятие ', lesson, sep=''),
                            parse_mode=ParseMode.MARKDOWN)
     await msg.forward(chat_id=GROUP)

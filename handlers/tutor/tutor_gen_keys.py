@@ -33,13 +33,12 @@ async def process_number_gen_btn(callback_query: types.CallbackQuery, state: FSM
 @dp.message_handler(state=States.GENKEYS_STATE)
 async def process_number_keys(msg: types.Message, state: FSMContext):
     if msg.text.isnumeric():
-        # TODO: generate keys
         n = int(msg.text)
         user_data = await state.get_data()
         if user_data['role'] == 'student':
             keys = KeyGen.generateNKeysStudents(n)
         elif user_data['role'] == 'tutor':
-            keys = KeyGen.generateNKeysCurators(n)
+            keys = KeyGen.generateNKeysTutors(n)
         else:
             keys = KeyGen.generateNKeysTeachers(n)
         await msg.answer(text(*list(map(code, keys))[:n], sep='\n'), parse_mode=ParseMode.MARKDOWN)
