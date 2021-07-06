@@ -303,16 +303,20 @@ class Database:
         for key, value in fields.items():
             if key in existing_fields:
                 hw_fields[key] = value
-        additional_fields = ['group_key', 'teacher_key', 'teacher_UID'] # Additional fields that could be passed in args
-        group_teacher_fields = {}
+        additional_fields_group = ['group_key'] # Additional fields that could be passed in args
+        additional_fields_teacher = ['teacher_UID', 'teacher_key']
+        teacher_fields = {}
+        group_fields = {}
         for key, value in fields.items():
-            if key in additional_fields:
+            if key in additional_fields_teacher:
                 if key == 'teacher_UID':
-                    group_teacher_fields['UID'] = value
+                    teacher_fields['UID'] = value
                 else:
-                    group_teacher_fields[key] = value
-        group = None if len(group_teacher_fields) == 0 else self.get_group(**group_teacher_fields)
-        teacher = None if len(group_teacher_fields) == 0 else self.get_teacher(**group_teacher_fields)
+                    teacher_fields[key] = value
+            if key in additional_fields_group:
+                group_fields[key] = value
+        group = None if len(group_fields) == 0 else self.get_group(**group_fields)
+        teacher = None if len(teacher_fields) == 0 else self.get_teacher(**teacher_fields)
         query = Homework.select().filter(**hw_fields)
         if group is not None:
             query = query.where(Homework.group == group)

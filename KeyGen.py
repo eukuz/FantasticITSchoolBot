@@ -64,11 +64,11 @@ class KeyGen:
     def generateNKeys(n, tableName):
         return KeyGen.__getKeys(n, tableName)
 
-def main():
+"""def main():
     app_db = Database()
     app_db.map_student_group('Nk3gD9jziJHjR', 'wBFcxRDmUFol0')
     app_db.map_student_group('rQoITHLQYcLh5', 'wBFcxRDmUFol0')
     app_db.map_student_group('XHXetJGPKSTSQ', 'wBFcxRDmUFol0')
     app_db.map_student_group('fQm1MY1pavKZv', 'wBFcxRDmUFol0')
-    print(app_db.get_student(group_key='wBFcxRDmUFol0'))
-main()
+    print(app_db.get_homework(group_key='wBFcxRDmUFol0'))
+main()"""
