@@ -4,7 +4,7 @@ from aiogram.types import ReplyKeyboardRemove, \
 from aiogram.utils.markdown import text, bold, italic, code
 from aiogram.types import ParseMode
 from aiogram import Bot, Dispatcher, executor, types
-from loader import dp, bot
+from loader import dp, bot, db
 from utils import States
 from aiogram.dispatcher.filters import Text
 from KeyGen import KeyGen
@@ -50,17 +50,19 @@ async def process_yes_btn(callback_query: types.CallbackQuery):
     state = dp.current_state(user=user_id)
     s = await state.get_state()
     if s == States.CREATE_COURSE_STATE[0]:
-        # TODO: create course
         key_course = KeyGen.generateNKeysCourses(1).pop()
+        course = db.get_course(course_key=key_course[3:])
+        db.set_course(course, name=name)
         await bot.edit_message_text(text('Курс', name, 'успешно создан.\nКлюч:', code(key_course)),
                                     user_id, message_id,
                                     parse_mode=ParseMode.MARKDOWN)
     else:
-        # TODO: generate list of courses
-        courses = ['Python', 'Java', 'C++']
+        courses = db.get_course()
+        if type(courses) is not list:
+            courses = [courses]
         courses_kb = InlineKeyboardMarkup()
         for i in range(len(courses)):
-            courses_btn = InlineKeyboardButton(courses[i], callback_data='courses ' + courses[i] + ' ' + name)
+            courses_btn = InlineKeyboardButton(courses[i].name, callback_data='courses@' + courses[i].course_key + '@' + name)
             courses_kb.insert(courses_btn)
 
         await bot.edit_message_text(text('Выберите курс к которому будет принадлежать группа.'),
@@ -74,10 +76,12 @@ async def process_course_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     user_id = callback_query.from_user.id
     message_id = callback_query.message.message_id
-    # TODO: create group
-    _, course, group = callback_query.data.split()
+    _, course, group_name = callback_query.data.split('@')
     key_group = KeyGen.generateNKeysGroups(1).pop()
-    await bot.edit_message_text(text('Группа', group, 'для курса', course, 'успешно создана.\nКлюч:', code(key_group)),
+    course_name = db.get_course(course_key=course).name
+    group = db.get_group(group_key=key_group[3:])
+    db.set_group(group, name=group_name)
+    await bot.edit_message_text(text('Группа', group_name, 'для курса', course_name, 'успешно создана.\nКлюч:', code(key_group)),
                                 user_id, message_id,
                                 parse_mode=ParseMode.MARKDOWN)
 

@@ -31,6 +31,6 @@ async def process_student_key(msg: types.Message):
     if group is None or text_[:3] != 'GRO':
         await msg.answer('Такого ключа не существует.')
     else:
-        await msg.answer('Поздравляем вы успешно добавили себе курс ' + group.course.name + '.')
+        await msg.answer('Поздравляем вы успешно добавили себе курс ' + group.name + '.')
         student = db.get_student(UID=msg.from_user.id)
         db.map_student_group(student.student_key, text_[3:])

@@ -100,5 +100,5 @@ async def echo_message(msg: types.Message):
 
 
 async def publish_msg(students, msg: types.Message):
-    for id in students:
-        await bot.send_message(id, text=msg.text)
+    for student in students:
+        await bot.send_message(student.UID, text=msg.text)
