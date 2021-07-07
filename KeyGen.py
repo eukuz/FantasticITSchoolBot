@@ -1,5 +1,6 @@
 import string
 import secrets
+import io
 from db.app_db import *
 
 class KeyGen:
@@ -12,7 +13,6 @@ class KeyGen:
         field_name = tableName[:-1] + '_key' if tableName != 'homework' else 'hw_key'
         while len(keys) != n:
             key = "".join(secrets.choice(symbols) for i in range(13))
-            print({field_name : key})
             if KeyGen._db.get(tableName, **{field_name : key}) is None:
                 keys.add(key)
         return keys
@@ -64,11 +64,7 @@ class KeyGen:
     def generateNKeys(n, tableName):
         return KeyGen.__getKeys(n, tableName)
 
-"""def main():
+def main():
     app_db = Database()
-    app_db.map_student_group('Nk3gD9jziJHjR', 'wBFcxRDmUFol0')
-    app_db.map_student_group('rQoITHLQYcLh5', 'wBFcxRDmUFol0')
-    app_db.map_student_group('XHXetJGPKSTSQ', 'wBFcxRDmUFol0')
-    app_db.map_student_group('fQm1MY1pavKZv', 'wBFcxRDmUFol0')
-    print(app_db.get_homework(group_key='wBFcxRDmUFol0'))
-main()"""
+
+main()

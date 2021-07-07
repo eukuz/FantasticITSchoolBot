@@ -1,6 +1,7 @@
 from peewee import *
+from playhouse.sqlite_ext import SqliteExtDatabase
 
-db = SqliteDatabase('db/ITSchoolBotDB', pragmas={
+db = SqliteExtDatabase('db/ITSchoolBotDB', pragmas={
     'ignore_check_constraints': 0
 })
 
@@ -61,8 +62,8 @@ class Homework(BaseModel):
     hw_key = CharField(unique=True)
     subject = CharField(default='')
     date = DateField(default='')
-    description = TextField(default='')
-    attached = BlobField(default='')
+    chat_ID = CharField(default='')
+    message_ID = CharField(default='')
     teacher = ForeignKeyField(Teachers, backref='homework')
     group = ForeignKeyField(Groups, backref='homework')
 

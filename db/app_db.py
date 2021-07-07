@@ -1,10 +1,16 @@
-from peewee import Expression
-
 from db.models import *
 
 debug_console_messages = True
 
+def singleton(class_):
+    instances = {}
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
+    return getinstance
 
+@singleton
 class Database:
     def __init__(self):
         self._db = db
@@ -112,6 +118,7 @@ class Database:
         check = Homework.get_or_none(hw_key=needed_fields['hw_key'])
         if check is not None:
             return check
+
         dummy_teacher = Teachers.get(teacher_key=fields['teacher']) if 'teacher' in fields else Teachers.get(teacher_key='0')
         dummy_group = Groups.get(group_key=fields['group']) if 'group' in fields else Groups.get(group_key='0')
         new_hw = Homework.get_or_create(teacher=dummy_teacher, group=dummy_group, **needed_fields)
@@ -460,7 +467,7 @@ class Database:
         else:
             raise KeyError('No such table')
 
-    def get_user_type_from_key(self, key):
+    def get_user_type(self, key):
         user_type = ''
         key = key[0:3]
         if key == "STD":
