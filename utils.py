@@ -16,6 +16,10 @@ class States(Helper):
     PARENT_STATE = ListItem()
     PARENT_REGISTRATION_STATE = ListItem()
 
+    PARENT_QUESTION_STATE = ListItem()
+    PARENT_SICK_STATE = ListItem()
+    PARENT_FEEDBACK_STATE = ListItem()
+
     TEACHER_STATE = ListItem()
     TEACHER_ADD_COURSE_STATE = ListItem()
     TEACHER_CREATE_MASS_MESSAGE_STATE = ListItem()

@@ -1,10 +1,10 @@
 from aiogram.types.chat import ChatType
 from handlers.student.student_register_parent import parent_in_system_kb
 from handlers.student.student_main import student_main_kb
-from .parent import parent_main_kb
+from handlers.parent.parent_main import parent_main_kb
+from handlers.teacher.teacher_main import teacher_main_kb
 from handlers.tutor.tutor_main import tutor_main_kb
 from handlers.tutor.tutor_publish import *
-from .teacher import teacher_main_kb
 from loader import dp, bot, db
 from .student import *
 from .tutor import *
@@ -90,7 +90,7 @@ async def echo_message(msg: types.Message):
         try:
             source_message = msg.reply_to_message
             user_id = source_message.text.split('.')[0]
-            await msg.answer('Ваше сообщение успешно отправлено.')
+            await msg.reply('Ваше сообщение успешно отправлено.')
             await bot.send_message(user_id, text=msg.text)
         except:
             pass

@@ -12,9 +12,9 @@ from config import GROUP
 from aiogram.dispatcher import FSMContext
 
 
-async def get_student_schedule(sql_student_id=0):
+async def get_student_schedule(student_id=0):
     # TODO: generate schedule message
-    if sql_student_id == 0:
+    if student_id == 0:
         return text(bold('Python'), ' 10:00-10:30', sep='')
     else:
         return text(bold('Java'), ' 10:00-10:30', sep='')
@@ -23,5 +23,5 @@ async def get_student_schedule(sql_student_id=0):
 # Schedule button
 @dp.message_handler(state=States.STUDENT_STATE, text='Расписание')
 async def process_schedule_btn(msg: types.Message):
-    schedule = await get_student_schedule(msg.chat.id)    #student_id in sql datebase == telegram user id ?
+    schedule = await get_student_schedule(msg.chat.id)
     await msg.answer(schedule, parse_mode=ParseMode.MARKDOWN)

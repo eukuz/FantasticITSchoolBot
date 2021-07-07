@@ -25,14 +25,14 @@ def create_query_kb(main):
     return query_kb
 
 
-@dp.message_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='Запрос')
+@dp.message_handler(state=States.STUDENT_STATE, text='Запрос')
 async def process_query_btn(msg: types.Message):
     query_kb = create_query_kb(True)
     await msg.answer('Выберите действие: ', reply_markup=query_kb)
 
 
 # Ask question button
-@dp.callback_query_handler(Text(startswith='question'), state=States.STUDENT_STATE | States.PARENT_STATE)
+@dp.callback_query_handler(Text(startswith='question'), state=States.STUDENT_STATE)
 async def process_question_btn(callback_query: types.CallbackQuery, state: FSMContext):
     # Find role of a user
     s = await state.get_state()
@@ -74,7 +74,7 @@ async def process_student_question(msg: types.Message, state: FSMContext):
 
 
 # Report about sickness
-@dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='sick')
+@dp.callback_query_handler(state=States.STUDENT_STATE, text='sick')
 async def process_sickness_btn(callback_query: types.CallbackQuery, state: FSMContext):
     # await bot.answer_callback_query(callback_query.id)
     s = await state.get_state()
@@ -117,7 +117,7 @@ async def process_sick_evidence(msg: types.Message, state: FSMContext):
 
 
 # Feedback button
-@dp.callback_query_handler(state=States.STUDENT_STATE | States.PARENT_STATE, text='feedback')
+@dp.callback_query_handler(state=States.STUDENT_STATE, text='feedback')
 async def process_feedback_btn(callback_query: types.CallbackQuery):
     user_name = callback_query.from_user.full_name
     user_id = callback_query.from_user.id
@@ -129,7 +129,7 @@ async def process_feedback_btn(callback_query: types.CallbackQuery):
 
 
 # Back to the main query menu button
-@dp.callback_query_handler(state=States.QUESTION_STATE | States.SICK_STATE, text='back to main')
+@dp.callback_query_handler(state=States.QUESTION_STATE, text='back to main')
 async def process_back_button(callback_query: types.CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
     user_data = await state.get_data()
