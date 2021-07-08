@@ -17,18 +17,19 @@ async def process_start_command(message: types.Message):
     state = dp.current_state(user=message.from_user.id)  # take current state of user
     await state.set_state(States.UNAUTHORIZED_STATE[0])  # user is unauthorized in the very beginning
     await message.answer('Привет, я бот введите пожалуйста ключ :)',
-                         reply_markup=ReplyKeyboardRemove())       # write welcome message to user
+                         reply_markup=ReplyKeyboardRemove())  # write welcome message to user
 
 
 # Authorization works only in UNAUTHORIZED state
 @dp.message_handler(state=States.UNAUTHORIZED_STATE)
 async def authorization(msg: types.Message):
-    text_ = msg.text                                  # take user's message
-    state = dp.current_state(user=msg.from_user.id)   # take current state
+    text_ = msg.text  # take user's message
+    state = dp.current_state(user=msg.from_user.id)  # take current state
     if text_[:3] == 'STU':
         student = db.get_student(student_key=text_[3:])
         if student is not None:
-            db.set_student(student, UID=msg.from_user.id, alias=msg.from_user.username, full_name=msg.from_user.full_name)
+            db.set_student(student, UID=msg.from_user.id, alias=msg.from_user.username,
+                           full_name=msg.from_user.full_name)
             await state.set_state(States.STUDENT_STATE[0])  # change user's state to STUDENT
             # add main buttons for student
             await msg.answer('Вы успешно авторизовались как ученик.',
@@ -43,10 +44,13 @@ async def authorization(msg: types.Message):
         parent = db.get_parent(parent_key=text_[3:])
         if parent is not None:
             db.set_parent(parent, UID=msg.from_user.id, alias=msg.from_user.username, full_name=msg.from_user.full_name)
-            await state.set_state(States.PARENT_STATE[0])   # change user's state to PARENT
-            # TODO: find children of the parent
-            await msg.answer('Вы успешно авторизовались как родитель.',
-                             reply_markup=parent_main_kb)
+            if db.get_student(parent_id=db.get_parent(UID=msg.from_user.id)) is not None:
+                await state.set_state(States.PARENT_STATE[0])  # change user's state to PARENT
+                # TODO: find children of the parent
+                await msg.answer('Вы успешно авторизовались как родитель.',
+                                 reply_markup=parent_main_kb)
+            else:
+                await msg.reply('Ваш ребёнок должен привязать этот ключ к своему аккаунту.')
         else:
             await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     elif text_[:3] == 'TUT':
@@ -61,7 +65,8 @@ async def authorization(msg: types.Message):
     elif text_[:3] == 'TEA':
         teacher = db.get_teacher(teacher_key=text_[3:])
         if teacher is not None:
-            db.set_teacher(teacher, UID=msg.from_user.id, alias=msg.from_user.username, full_name=msg.from_user.full_name)
+            db.set_teacher(teacher, UID=msg.from_user.id, alias=msg.from_user.username,
+                           full_name=msg.from_user.full_name)
             await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
             await msg.answer('Вы успешно авторизовались как учитель.',
                              reply_markup=teacher_main_kb)

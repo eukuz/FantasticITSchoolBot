@@ -7,7 +7,7 @@ from loader import bot
 from utils import States
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
-from loader import dp, bot
+from loader import dp, bot, db
 from .teacher_main import teacher_main_kb
 
 teacher_cancel_kb = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('Отмена'))
@@ -27,13 +27,21 @@ async def process_teacher_key(msg: types.Message):
         await state.set_state(States.TEACHER_STATE[0])
         await msg.answer('Отменено', reply_markup=teacher_main_kb)
     else:
-        # TODO: check user's authorization code
-        check = True
-        if not check:
-            await msg.answer('Такого ключа не существует.')
-        elif text_[:3] == 'COU':
-            await state.set_state(States.TEACHER_STATE[0])
-            await msg.answer('Поздравляем вы успешно добавили себе курс ' + text_ + '.', reply_markup=teacher_main_kb)
+        if text_[:3] == 'COU':
+            course = db.get_course(course_key=text_[3:])
+            if course is not None:
+                    await state.set_state(States.TEACHER_STATE[0])
+                    groups = db.get_group(course_id=course.id)
+                    if groups is None:
+                        return
+                    if type(groups) is not list:
+                        groups = [groups]
+                    for i in range(len(groups)):
+                        db.set_group(groups[i], teacher_id=db.get_teacher(UID=msg.from_user.id).id)
+                    await msg.answer('Поздравляем вы успешно добавили себе курс ' + str(course.name) + '.',
+                                     reply_markup=teacher_main_kb)
+            else:
+                await msg.answer('Такого ключа не существует.')
         else:
             await msg.answer('Ошибка. Пожалуйста обратитесь к администрации.')
 

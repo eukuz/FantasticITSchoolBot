@@ -10,10 +10,14 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from .teacher_main import sure_kb
 from handlers.parent.parent_main import send_request_to_group,get_group_name_by_id
+from config import GROUP
 
 
-async def send_message_to_group(teacher_id, message_id, group_id):
-    #send_request_to_group(,message_sender_id,,,)
+async def send_message_to_group(teacher_id, message_id):
+    bot.copy_message(chat_id=GROUP,
+                     from_chat_id=teacher_id,
+                     message_id=message_id)
+    # TODO разослать сооьщение по группам
     pass
 
 
@@ -45,6 +49,6 @@ async def process_yes_btn(callback_query: types.CallbackQuery, state: FSMContext
 
     await bot.edit_message_text(f'Сообщение будет отправлено для {group_name}.',
                                 callback_query.from_user.id, callback_query.message.message_id)
-    await send_message_to_group(teacher_id, message_id, group_id)
+    await send_message_to_group(teacher_id, message_id)
     await state.finish()
     await state.set_state(States.TEACHER_STATE[0])

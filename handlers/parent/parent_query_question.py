@@ -1,6 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from loader import dp, bot, db
-from handlers.student.student_schedule import get_student_schedule
 from aiogram.utils.markdown import text, bold
 from aiogram.types import ParseMode
 from aiogram import types

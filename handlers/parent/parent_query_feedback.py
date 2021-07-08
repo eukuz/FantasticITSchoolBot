@@ -1,6 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from loader import dp, bot
-from handlers.student.student_schedule import get_student_schedule
 from aiogram.utils.markdown import text, bold
 from aiogram.types import ParseMode
 from aiogram import types
@@ -27,7 +26,7 @@ async def process_sick_btn(callback_query: types.CallbackQuery, state: FSMContex
                            state=States.PARENT_FEEDBACK_STATE)
 async def process_question_btn(callback_query: types.CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
-    student_id = callback_query.data.split('|')[1]  # получаем id студента
+    student_id = callback_query.data.split(' ')[1]  # получаем id студента
     await state.update_data(child=student_id)
     student_name = await get_student_name_by_id(student_id)
     await group_menu(parent_id=callback_query.from_user.id,
@@ -44,7 +43,7 @@ async def process_question_btn(callback_query: types.CallbackQuery, state: FSMCo
     await bot.answer_callback_query(callback_query.id)
     user_data = await state.get_data()
     if user_data['child']:  # Если не указали ребёнка, бот не отреагирует на сообщение
-        group_id = callback_query.data.split('|')[1]  # получаем id группы
+        group_id = callback_query.data.split(' ')[1]  # получаем id группы
         await state.update_data(group=group_id)
         group_name = await get_group_name_by_id(group_id)
         student_name = await get_student_name_by_id(user_data['child'])

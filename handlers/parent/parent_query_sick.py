@@ -1,7 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 
 from loader import dp, db, bot
-from handlers.student.student_schedule import get_student_schedule
 from aiogram.utils.markdown import text, bold
 from aiogram.types import ParseMode
 from aiogram import types
@@ -26,7 +25,7 @@ async def process_sick_btn(callback_query: types.CallbackQuery, state: FSMContex
                            state=States.PARENT_SICK_STATE)
 async def process_question_btn(callback_query: types.CallbackQuery, state: FSMContext):
     await bot.answer_callback_query(callback_query.id)
-    student_id = callback_query.data.split('|')[1]  # получаем id студента
+    student_id = callback_query.data.split(' ')[1]  # получаем id студента
     await state.update_data(child=student_id)
     student_name = await get_student_name_by_id(student_id)
     await bot.send_message(callback_query.from_user.id, 'Прикрепите подтверждающий документ для ' + str(student_name))

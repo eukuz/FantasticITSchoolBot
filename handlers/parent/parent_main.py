@@ -1,12 +1,12 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from loader import dp, bot, db
-from handlers.student.student_schedule import get_student_schedule
 from aiogram.utils.markdown import text, bold
 from aiogram.types import ParseMode
 from aiogram import types
 from utils import States
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
+from handlers.student.student_courses import course_menu
 
 # Главная клавиатура родителя
 parent_schedule_btn = KeyboardButton('Расписание')
@@ -53,20 +53,6 @@ async def send_request_to_group(sender_id, sender_message_id, group_id, caption,
                            parse_mode=ParseMode.MARKDOWN)
 
 
-async def get_childs(parent_id):
-    # TODO get children data
-    # формат {student_id : student_name}
-    return {1: 'Ребенок 1',
-            2: 'Ребёнок 2'}
-
-
-async def get_student_groups(student_id):
-    # TODO get student groups data
-    # формат {group_id : group_name}
-    return {1: 'Курс/Группа 1',
-            2: 'Курс/Группа 2'}
-
-
 async def get_parent_name_by_id(parent_id):
     try:
         return db.get_parent(UID=parent_id).full_name
@@ -83,34 +69,41 @@ async def get_student_name_by_id(student_id):
 
 async def get_group_name_by_id(group_id):
     try:
-        return db.get_group(UID=group_id).course
+        return db.get_group(id=group_id).name
     except AttributeError:
         return f"<group name with id {group_id} not found>"
 
 
 # Mеню выбора ребёнка
 async def child_menu(parent_id, message_id, display_text, mode):
-    students_dict = await get_childs(parent_id)
-    students_kb = InlineKeyboardMarkup()
-    for student_id, student_name in students_dict.items():
-        student_btn = InlineKeyboardButton(student_name, callback_data='student|' + str(student_id))
-        students_kb.insert(student_btn)
-    students_kb.insert(InlineKeyboardButton("Отмена", callback_data='cancel'))
+
+    children_list = db.get_student(parent_id=db.get_parent(UID=parent_id))
+    children_buttons = InlineKeyboardMarkup()
+    if type(children_list) is not list:
+        children_list = [children_list]
+
+    for i in range(len(children_list)):
+        child_btn = InlineKeyboardButton(text=children_list[i].full_name,
+                                         callback_data='student ' + children_list[i].UID)
+        children_buttons.insert(child_btn)
+    children_buttons.insert(InlineKeyboardButton("Отмена", callback_data='cancel'))
+
     if mode == 'answer':
-        await bot.send_message(parent_id, display_text, parse_mode=ParseMode.MARKDOWN, reply_markup=students_kb)
+        await bot.send_message(parent_id, display_text, parse_mode=ParseMode.MARKDOWN, reply_markup=children_buttons)
     else:
         await bot.edit_message_text(display_text, parent_id, message_id)
-        await bot.edit_message_reply_markup(parent_id, message_id, reply_markup=students_kb)
+        await bot.edit_message_reply_markup(parent_id, message_id, reply_markup=children_buttons)
 
 
-# Mеню выбора группы
+# Mеню выбора группы для студента/ребёнка
 async def group_menu(parent_id, child_id, message_id, display_text, mode):
-    groups_dict = await get_student_groups(child_id)
+    groups = db.get_group(student_UID=child_id)
+    if type(groups) is not list:
+        groups = [groups]
     groups_kb = InlineKeyboardMarkup()
-    for group_id, group_name in groups_dict.items():
-        student_btn = InlineKeyboardButton(group_name, callback_data='group|' + str(group_id))
-        groups_kb.insert(student_btn)
-    groups_kb.insert(InlineKeyboardButton("Отмена", callback_data='cancel'))
+    for i in range(len(groups)):
+        groups_btn = InlineKeyboardButton(groups[i].name, callback_data='group ' + str(groups[i].id))
+        groups_kb.insert(groups_btn)
     if mode == 'answer':
         await bot.send_message(parent_id, display_text, parse_mode=ParseMode.MARKDOWN, reply_markup=groups_kb)
     else:
