@@ -64,8 +64,9 @@ async def process_one_course_btn(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(Text(startswith='gethw'), state=States.STUDENT_STATE)
 async def process_get_hw_btn(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
-    _, course, lesson = callback_query.data.split()
-    # hw = db.get_homework(hw_key=lesson)
+    _, group_key, hw_key = callback_query.data.split()
+    hw = db.get_homework(hw_key=hw_key)
+    await bot.copy_message(callback_query.from_user.id, hw.chat_ID, hw.message_ID)
 
 
 # Come back to all courses
