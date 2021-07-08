@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
-from loader import dp, bot
+from loader import dp, bot, db
 from aiogram.utils.markdown import text
 from aiogram.types import ParseMode
 from aiogram import types
@@ -9,16 +9,24 @@ from utils import States
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from .teacher_main import sure_kb
-from handlers.parent.parent_main import send_request_to_group,get_group_name_by_id
+from handlers.parent.parent_main import send_request_to_group, get_group_name_by_id
+from handlers.tutor.tutor_publish import publish_msg
 from config import GROUP
 
 
-async def send_message_to_group(teacher_id, message_id):
-    bot.copy_message(chat_id=GROUP,
-                     from_chat_id=teacher_id,
-                     message_id=message_id)
-    # TODO разослать сооьщение по группам
-    pass
+async def send_message_to_group(teacher_id, message_id, group_id):
+    students = db.get_student(group_key=db.get_group(id=group_id).group_key)
+    print(students)
+    print(f'group_id = {group_id}')
+    if students is None:
+        return
+    if type(students) is not list:
+        students = [students]
+    for student in students:
+        print(f'student.UID={student.UID}')
+        await bot.copy_message(chat_id=student.UID,
+                               from_chat_id=teacher_id,
+                               message_id=message_id)
 
 
 @dp.callback_query_handler(Text(startswith='create_massmessage'), state=States.TEACHER_STATE)
@@ -31,7 +39,8 @@ async def process_publish_btn(callback_query: types.CallbackQuery, state: FSMCon
     await bot.send_message(callback_query.from_user.id, 'Введите сообщение для рассылки')
 
 
-@dp.message_handler(state=States.TEACHER_CREATE_MASS_MESSAGE_STATE, content_types=['text', 'photo', 'document', 'audio','voice', 'video'])
+@dp.message_handler(state=States.TEACHER_CREATE_MASS_MESSAGE_STATE,
+                    content_types=['text', 'photo', 'document', 'audio', 'voice', 'video'])
 async def process_post_message(msg: types.Message, state: FSMContext):
     await msg.reply(text('Вы уверены что хотите отправить это сообщение?'), reply_markup=sure_kb)
 
@@ -49,6 +58,6 @@ async def process_yes_btn(callback_query: types.CallbackQuery, state: FSMContext
 
     await bot.edit_message_text(f'Сообщение будет отправлено для {group_name}.',
                                 callback_query.from_user.id, callback_query.message.message_id)
-    await send_message_to_group(teacher_id, message_id)
+    await send_message_to_group(teacher_id, message_id, group_id)
     await state.finish()
     await state.set_state(States.TEACHER_STATE[0])
