@@ -26,52 +26,68 @@ async def authorization(msg: types.Message):
     text_ = msg.text  # take user's message
     state = dp.current_state(user=msg.from_user.id)  # take current state
     if text_[:3] == 'STU':
-        student = db.get_student(student_key=text_[3:])
-        if student is not None:
-            db.set_student(student, UID=msg.from_user.id, alias=msg.from_user.username,
-                           full_name=msg.from_user.full_name)
-            await state.set_state(States.STUDENT_STATE[0])  # change user's state to STUDENT
-            # add main buttons for student
-            await msg.answer('Вы успешно авторизовались как ученик.',
-                             reply_markup=student_main_kb)
+        user = db.get_student(UID=msg.from_user.id)
+        if user is not None and user.student_key != text_[3:]:
+            await bot.send_message(msg.from_user.id, 'Вы уже зарегестрированы под другим ключом.')
+        else:
+            student = db.get_student(student_key=text_[3:])
+            if student is not None:
+                db.set_student(student, UID=msg.from_user.id, alias=msg.from_user.username,
+                               full_name=msg.from_user.full_name)
+                await state.set_state(States.STUDENT_STATE[0])  # change user's state to STUDENT
+                # add main buttons for student
+                await msg.answer('Вы успешно авторизовались как ученик.',
+                                 reply_markup=student_main_kb)
 
-            await msg.answer(text('Пожалуйста, зарегестрируйте родителя.'),
-                             parse_mode=ParseMode.MARKDOWN,
-                             reply_markup=parent_in_system_kb)
-        else:
-            await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
-    elif text_[:3] == 'PAR':
-        parent = db.get_parent(parent_key=text_[3:])
-        if parent is not None:
-            db.set_parent(parent, UID=msg.from_user.id, alias=msg.from_user.username, full_name=msg.from_user.full_name)
-            if db.get_student(parent_id=db.get_parent(UID=msg.from_user.id)) is not None:
-                await state.set_state(States.PARENT_STATE[0])  # change user's state to PARENT
-                # TODO: find children of the parent
-                await msg.answer('Вы успешно авторизовались как родитель.',
-                                 reply_markup=parent_main_kb)
+                await msg.answer(text('Пожалуйста, зарегестрируйте родителя.'),
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 reply_markup=parent_in_system_kb)
             else:
-                await msg.reply('Ваш ребёнок должен привязать этот ключ к своему аккаунту.')
+                await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
+    elif text_[:3] == 'PAR':
+        user = db.get_parent(UID=msg.from_user.id)
+        if user is not None and user.parent_key != text_[3:]:
+            await bot.send_message(msg.from_user.id, 'Вы уже зарегестрированы под другим ключом.')
         else:
-            await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
+            parent = db.get_parent(parent_key=text_[3:])
+            if parent is not None:
+                db.set_parent(parent, UID=msg.from_user.id, alias=msg.from_user.username, full_name=msg.from_user.full_name)
+                if db.get_student(parent_id=db.get_parent(UID=msg.from_user.id)) is not None:
+                    await state.set_state(States.PARENT_STATE[0])  # change user's state to PARENT
+                    # TODO: find children of the parent
+                    await msg.answer('Вы успешно авторизовались как родитель.',
+                                     reply_markup=parent_main_kb)
+                else:
+                    await msg.reply('Ваш ребёнок должен привязать этот ключ к своему аккаунту.')
+            else:
+                await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     elif text_[:3] == 'TUT':
-        tutor = db.get_tutor(tutor_key=text_[3:])
-        if tutor is not None:
-            db.set_tutor(tutor, UID=msg.from_user.id, alias=msg.from_user.username, full_name=msg.from_user.full_name)
-            await state.set_state(States.TUTOR_STATE[0])  # change user's state to TUTOR
-            await msg.answer('Вы успешно авторизовались как куратор.',
-                             reply_markup=tutor_main_kb)
+        user = db.get_tutor(UID=msg.from_user.id)
+        if user is not None and user.tutor_key != text_[3:]:
+            await bot.send_message(msg.from_user.id, 'Вы уже зарегестрированы под другим ключом.')
         else:
-            await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
+            tutor = db.get_tutor(tutor_key=text_[3:])
+            if tutor is not None:
+                db.set_tutor(tutor, UID=msg.from_user.id, alias=msg.from_user.username, full_name=msg.from_user.full_name)
+                await state.set_state(States.TUTOR_STATE[0])  # change user's state to TUTOR
+                await msg.answer('Вы успешно авторизовались как куратор.',
+                                 reply_markup=tutor_main_kb)
+            else:
+                await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     elif text_[:3] == 'TEA':
-        teacher = db.get_teacher(teacher_key=text_[3:])
-        if teacher is not None:
-            db.set_teacher(teacher, UID=msg.from_user.id, alias=msg.from_user.username,
-                           full_name=msg.from_user.full_name)
-            await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
-            await msg.answer('Вы успешно авторизовались как учитель.',
-                             reply_markup=teacher_main_kb)
+        user = db.get_teacher(UID=msg.from_user.id)
+        if user is not None and user.teacher_key != text_[3:]:
+            await bot.send_message(msg.from_user.id, 'Вы уже зарегестрированы под другим ключом.')
         else:
-            await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
+            teacher = db.get_teacher(teacher_key=text_[3:])
+            if teacher is not None:
+                db.set_teacher(teacher, UID=msg.from_user.id, alias=msg.from_user.username,
+                               full_name=msg.from_user.full_name)
+                await state.set_state(States.TEACHER_STATE[0])  # change user's state to TEACHER
+                await msg.answer('Вы успешно авторизовались как учитель.',
+                                 reply_markup=teacher_main_kb)
+            else:
+                await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     else:
         await msg.answer('Ошибка. Пожалуйста обратитесь к администрации.')
 
@@ -100,4 +116,4 @@ async def echo_message(msg: types.Message):
         except:
             pass
     else:
-        await msg.answer('Я вас не понял. Попробуйте другую команду.')
+        await msg.answer('Я вас не понял. Попробуйте другую команду или войти в аккаунт.')
