@@ -38,10 +38,12 @@ async def authorization(msg: types.Message):
                 # add main buttons for student
                 await msg.answer('Вы успешно авторизовались как ученик.',
                                  reply_markup=student_main_kb)
+                parent = db.get_parent(student_UID=student.UID)
 
-                await msg.answer(text('Пожалуйста, зарегестрируйте родителя.'),
-                                 parse_mode=ParseMode.MARKDOWN,
-                                 reply_markup=parent_in_system_kb)
+                if parent is None:
+                    await msg.answer(text('Пожалуйста, зарегестрируйте родителя.'),
+                                     parse_mode=ParseMode.MARKDOWN,
+                                     reply_markup=parent_in_system_kb)
             else:
                 await msg.answer('Такого ключа не существует, пожалуйста, попробуйте еще раз.')  # code is not correct
     elif text_[:3] == 'PAR':
