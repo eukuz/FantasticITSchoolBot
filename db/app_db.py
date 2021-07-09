@@ -13,13 +13,20 @@ def singleton(class_):
 @singleton
 class Database:
     def __init__(self):
+        """Default constructor for database class
+        """
         self._db = db
+        # Connect to DB
         self._db.connect()
+        # Create tables
         self._db.create_tables([Teachers, Parents, Tutors, Students, Homework, Groups, StudentsGroups, Courses])
+        # Create filling entries
         self.__create_dummies()
         self._db.close()
 
     def __create_dummies(self):
+        """Creates filling fields for database tables to prevent some unexpected events. Private
+        """
         zero_teacher = Teachers.get_or_create(teacher_key='0', UID='0')
         zero_parent = Parents.get_or_create(parent_key='0', UID='0')
         zero_tutor = Tutors.get_or_create(tutor_key='0', UID='0')
@@ -29,8 +36,17 @@ class Database:
                                           course=zero_course[0])
 
     def register_parent(self, **fields):
+        """Registers a new record into 'parents' table
+
+        Args:
+            **fields - kwargs filters (creates a record with given args, 'parent_key' arg is mandatory)
+
+        Returns:
+            a <Model: Parents> instance
+
+        """
         if 'parent_key' not in fields.keys():
-            raise KeyError
+            raise KeyError('Primary key is missing')
         existing_fields = [i.name for i in self._db.get_columns('parents')]
         needed_fields = {}
         for key, value in fields.items():
@@ -45,8 +61,17 @@ class Database:
         return new_parent
 
     def register_student(self, **fields):
+        """Registers a new record into 'students' table
+
+            Args:
+                **fields - kwargs filters (creates a record with given args, 'student_key' arg is mandatory)
+
+            Returns:
+                a <Model: Students> instance
+
+        """
         if 'student_key' not in fields.keys():
-            raise KeyError
+            raise KeyError('Primary key is missing')
         existing_fields = [i.name for i in self._db.get_columns('students')]
         needed_fields = {}
         for key, value in fields.items():
@@ -62,8 +87,17 @@ class Database:
         return new_student[0]
 
     def register_teacher(self, **fields):
+        """Registers a new record into 'teachers' table
+
+            Args:
+                **fields - kwargs filters (creates a record with given args, 'teacher_key' arg is mandatory)
+
+            Returns:
+                a <Model: Teachers> instance
+
+        """
         if 'teacher_key' not in fields.keys():
-            raise KeyError
+            raise KeyError('Primary key is missing')
         existing_fields = [i.name for i in self._db.get_columns('teachers')]
         needed_fields = {}
         for key, value in fields.items():
@@ -78,8 +112,17 @@ class Database:
         return new_teacher
 
     def register_tutor(self, **fields):
+        """Registers a new record into 'tutors' table
+
+            Args:
+                **fields - kwargs filters (creates a record with given args, 'tutor_key' arg is mandatory)
+
+            Returns:
+                a <Model: Tutors> instance
+
+        """
         if 'tutor_key' not in fields.keys():
-            raise KeyError
+            raise KeyError('Primary key is missing')
         existing_fields = [i.name for i in self._db.get_columns('tutors')]
         needed_fields = {}
         for key, value in fields.items():
@@ -94,8 +137,17 @@ class Database:
         return new_tutor
 
     def register_course(self, **fields):
+        """Registers a new record into 'courses' table
+
+            Args:
+                **fields - kwargs filters (creates a record with given args, 'course_key' arg is mandatory)
+
+            Returns:
+                a <Model: Courses> instance
+
+        """
         if 'course_key' not in fields.keys():
-            raise KeyError
+            raise KeyError('Primary key is missing')
         existing_fields = [i.name for i in self._db.get_columns('courses')]
         needed_fields = {}
         for key, value in fields.items():
@@ -108,8 +160,17 @@ class Database:
         return new_course
 
     def register_homework(self, **fields):
+        """Registers a new record into 'homework' table
+
+            Args:
+                **fields - kwargs filters (creates a record with given args, 'homework_key' arg is mandatory)
+
+            Returns:
+                a <Model: Homework> instance
+
+        """
         if 'hw_key' not in fields.keys():
-            raise KeyError
+            raise KeyError('Primary key is missing')
         existing_fields = [i.name for i in self._db.get_columns('homework')]
         needed_fields = {}
         for key, value in fields.items():
@@ -125,8 +186,17 @@ class Database:
         return new_hw
 
     def register_group(self, **fields):
+        """Registers a new record into 'group' table
+
+            Args:
+                **fields - kwargs filters (creates a record with given args, 'group_key' arg is mandatory)
+
+            Returns:
+                a <Model: Group> instance
+
+        """
         if 'group_key' not in fields.keys():
-            raise KeyError
+            raise KeyError('Primary key is missing')
         existing_fields = [i.name for i in self._db.get_columns('groups')]
         needed_fields = {}
         for key, value in fields.items():
@@ -142,6 +212,8 @@ class Database:
         return new_group
 
     def register(self, table_name, **fields):
+        """Wrapper for all register_smth() methods
+        """
         if table_name == 'groups':
             self.register_group(**fields)
         elif table_name == 'homework':
@@ -186,7 +258,8 @@ class Database:
                     student_fields[key] = value
         student = None if len(student_fields) == 0 else Students.get_or_none(**student_fields) # Gets a student
         if student is not None:
-            parents = [i for i in Parents.select().where(student.parent == Parents.id).filter(**parent_fields)] # Selects a parent of a student and checks requirements
+            query = Parents.select().where(student.parent_id == Parents.id).filter(**parent_fields)
+            parents = [i for i in query] # Selects a parent of a student and checks requirements
         else:
             parents = [i for i in Parents.select().filter(**parent_fields)] # Selects a parent of a student and checks requirements
         # Expect single value if search by unique fields, list if search by non-unique fields

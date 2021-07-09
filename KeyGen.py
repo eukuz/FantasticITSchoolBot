@@ -66,5 +66,5 @@ class KeyGen:
 
 def main():
     app_db = Database()
-
+    parent = app_db.get_parent(student_UID=298433120)
 main()
