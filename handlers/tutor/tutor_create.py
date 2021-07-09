@@ -54,7 +54,7 @@ async def process_back_btn(callback_query: types.CallbackQuery):
     # print(await state.get_state())
 
 
-@dp.message_handler(state=States.CREATE_GROUP_STATE | States.CREATE_COURSE_STATE)
+@dp.message_handler(state=States.CREATE_GROUP_STATE | States.CREATE_COURSE_STATE, content_types=['text'])
 async def process_course_name(msg: types.Message):
     name = msg.text
     yes_btn = InlineKeyboardButton('Да', callback_data='yes' + name)
